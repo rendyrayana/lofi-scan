@@ -1,6 +1,7 @@
 # Raw scan data (ownership/rights unclear — never publish by default)
 /scans/
 /raw_scans/
+/obj/
 
 # Generated pipeline outputs (regenerable, often large binaries)
 # Use /* + negation so .gitkeep can still be tracked
