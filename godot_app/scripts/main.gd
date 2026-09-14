@@ -228,8 +228,8 @@ func _run_pipeline(mesh_path: String) -> void:
 	var tex_cfg := {
 		"input_mesh": mesh_path, "fixed_tri_count": best_tris,
 		"tier": TIER, "output_dir": tex_out,
-		"resolutions": [16, 32, 64, 128, 256],
-		"render_resolution": 256, "merge_distance": 0.0,
+		"resolutions": [64, 128, 256],
+		"render_resolution": 512, "merge_distance": 0.0,
 		"blender_bin": BLENDER_BIN, "camera_distance": 2.5,
 		"input_texture": selected_texture_path if selected_texture_path != "" else null,
 	}
