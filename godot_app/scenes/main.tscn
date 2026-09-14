@@ -116,11 +116,10 @@ bbcode_enabled = true
 text = "[color=gray]Ready.[/color]"
 
 [node name="ResultLabel" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=263937983]
-visible = false
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
-autowrap_mode = 2
+text = "— tris  ·  — tex"
 
 [node name="ExportBtn" type="Button" parent="CanvasLayer/SidePanel/VBox" unique_id=946512519]
 layout_mode = 2
@@ -134,10 +133,21 @@ layout_mode = 2
 layout_mode = 2
 text = "PSX Settings"
 
-[node name="PixelateBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=1696665933]
+[node name="PixelateRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+layout_mode = 2
+
+[node name="PixelateBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox/PixelateRow"]
 layout_mode = 2
 button_pressed = true
 text = "Pixelate"
+
+[node name="PixelateSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/PixelateRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.05
+max_value = 0.5
+value = 0.25
+step = 0.0
 
 [node name="SnapBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=1326049333]
 layout_mode = 2
@@ -154,6 +164,10 @@ layout_mode = 2
 button_pressed = true
 text = "Dither"
 
+[node name="WireframeBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+layout_mode = 2
+text = "Wireframe"
+
 [node name="HSep5" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=1071784427]
 layout_mode = 2
 
@@ -161,25 +175,80 @@ layout_mode = 2
 layout_mode = 2
 text = "CRT Effects"
 
-[node name="GrainBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=772967850]
+[node name="GrainRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+layout_mode = 2
+
+[node name="GrainBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox/GrainRow"]
 layout_mode = 2
 text = "Grain"
 
-[node name="ChromaBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=1122074626]
+[node name="GrainSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/GrainRow"]
 layout_mode = 2
-text = "Chromatic Aberration"
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+value = 1.0
+editable = false
 
-[node name="ScanlinesBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=899346098]
+[node name="ChromaRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+layout_mode = 2
+
+[node name="ChromaBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox/ChromaRow"]
+layout_mode = 2
+text = "Chroma"
+
+[node name="ChromaSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/ChromaRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+value = 1.0
+editable = false
+
+[node name="ScanlinesRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+layout_mode = 2
+
+[node name="ScanlinesBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox/ScanlinesRow"]
 layout_mode = 2
 text = "Scanlines"
 
-[node name="VignetteBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=247623514]
+[node name="ScanlinesSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/ScanlinesRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+value = 1.0
+editable = false
+
+[node name="VignetteRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+layout_mode = 2
+
+[node name="VignetteBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox/VignetteRow"]
 layout_mode = 2
 text = "Vignette"
 
-[node name="WarbleBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=1537485888]
+[node name="VignetteSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/VignetteRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+value = 1.0
+editable = false
+
+[node name="WarbleRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+layout_mode = 2
+
+[node name="WarbleBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox/WarbleRow"]
 layout_mode = 2
 text = "Warble"
+
+[node name="WarbleSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/WarbleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+value = 1.0
+editable = false
 
 [node name="HSep4" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=1078277388]
 layout_mode = 2
@@ -223,6 +292,11 @@ value = 30.0
 [node name="RecordRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
 layout_mode = 2
 
+[node name="SnapshotBtn" type="Button" parent="CanvasLayer/SidePanel/VBox/RecordRow"]
+layout_mode = 2
+text = "📷"
+tooltip_text = "Save PNG snapshot"
+
 [node name="RecordBtn" type="Button" parent="CanvasLayer/SidePanel/VBox/RecordRow"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -260,6 +334,13 @@ size = Vector2i(900, 600)
 access = 2
 file_mode = 4
 filters = PackedStringArray("*.mp4,*.gif ; Video Files")
+
+[node name="SnapshotDialog" type="FileDialog" parent="CanvasLayer"]
+title = "Save Snapshot"
+size = Vector2i(900, 600)
+access = 2
+file_mode = 4
+filters = PackedStringArray("*.png ; PNG Image")
 
 [node name="BatchDialog" type="FileDialog" parent="CanvasLayer" unique_id=529857428]
 title = "Open a Directory"

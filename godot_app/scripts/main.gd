@@ -8,15 +8,24 @@ extends Node3D
 @onready var process_btn:  Button        = $CanvasLayer/SidePanel/VBox/ProcessBtn
 @onready var input_label:  Label         = $CanvasLayer/SidePanel/VBox/InputLabel
 @onready var status_label: RichTextLabel = $CanvasLayer/SidePanel/VBox/StatusLabel
-@onready var pixelate_btn: CheckButton   = $CanvasLayer/SidePanel/VBox/PixelateBtn
-@onready var snap_btn:     CheckButton   = $CanvasLayer/SidePanel/VBox/SnapBtn
-@onready var affine_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/AffineBtn
-@onready var dither_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/DitherBtn
-@onready var grain_btn:    CheckButton   = $CanvasLayer/SidePanel/VBox/GrainBtn
-@onready var chroma_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/ChromaBtn
-@onready var scanlines_btn:CheckButton   = $CanvasLayer/SidePanel/VBox/ScanlinesBtn
-@onready var vignette_btn: CheckButton   = $CanvasLayer/SidePanel/VBox/VignetteBtn
-@onready var warble_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/WarbleBtn
+@onready var pixelate_btn:    CheckButton  = $CanvasLayer/SidePanel/VBox/PixelateRow/PixelateBtn
+@onready var pixelate_slider: HSlider     = $CanvasLayer/SidePanel/VBox/PixelateRow/PixelateSlider
+@onready var snap_btn:        CheckButton = $CanvasLayer/SidePanel/VBox/SnapBtn
+@onready var affine_btn:      CheckButton = $CanvasLayer/SidePanel/VBox/AffineBtn
+@onready var dither_btn:      CheckButton = $CanvasLayer/SidePanel/VBox/DitherBtn
+@onready var wireframe_btn:   CheckButton = $CanvasLayer/SidePanel/VBox/WireframeBtn
+@onready var grain_btn:    CheckButton  = $CanvasLayer/SidePanel/VBox/GrainRow/GrainBtn
+@onready var grain_slider: HSlider      = $CanvasLayer/SidePanel/VBox/GrainRow/GrainSlider
+@onready var chroma_btn:    CheckButton = $CanvasLayer/SidePanel/VBox/ChromaRow/ChromaBtn
+@onready var chroma_slider: HSlider     = $CanvasLayer/SidePanel/VBox/ChromaRow/ChromaSlider
+@onready var scanlines_btn:    CheckButton = $CanvasLayer/SidePanel/VBox/ScanlinesRow/ScanlinesBtn
+@onready var scanlines_slider: HSlider    = $CanvasLayer/SidePanel/VBox/ScanlinesRow/ScanlinesSlider
+@onready var vignette_btn:    CheckButton = $CanvasLayer/SidePanel/VBox/VignetteRow/VignetteBtn
+@onready var vignette_slider: HSlider    = $CanvasLayer/SidePanel/VBox/VignetteRow/VignetteSlider
+@onready var warble_btn:    CheckButton  = $CanvasLayer/SidePanel/VBox/WarbleRow/WarbleBtn
+@onready var warble_slider: HSlider     = $CanvasLayer/SidePanel/VBox/WarbleRow/WarbleSlider
+@onready var snapshot_btn:    Button     = $CanvasLayer/SidePanel/VBox/RecordRow/SnapshotBtn
+@onready var snapshot_dialog: FileDialog = $CanvasLayer/SnapshotDialog
 @onready var magnification_rect: TextureRect = $CanvasLayer/Magnification
 @onready var tier_option:    OptionButton     = $CanvasLayer/SidePanel/VBox/TierRow/TierOption
 @onready var result_label:   Label            = $CanvasLayer/SidePanel/VBox/ResultLabel
@@ -101,15 +110,25 @@ func _ready() -> void:
 	record_btn.pressed.connect(_on_record_pressed)
 	video_dialog.file_selected.connect(_on_video_path_selected)
 	pixelate_btn.toggled.connect(_on_pixelate_toggled)
+	pixelate_slider.value_changed.connect(func(_v): _on_pixelate_toggled(pixelate_btn.button_pressed))
 	snap_btn.toggled.connect(func(v): _set_all_shader_param("snap_vertices", v))
 	affine_btn.toggled.connect(func(v): _set_all_shader_param("use_affine_uv", v))
 	dither_btn.toggled.connect(func(v): _set_all_shader_param("use_dither", v))
-	grain_btn.toggled.connect(func(v): _set_crt("grain_intensity", CRT_GRAIN if v else 0.0))
-	chroma_btn.toggled.connect(func(v): _set_crt("chromatic_aberration", CRT_CHROMA if v else 0.0))
-	scanlines_btn.toggled.connect(func(v): _set_crt("scanline_intensity", CRT_SCANLINES if v else 0.0))
+	wireframe_btn.toggled.connect(_on_wireframe_toggled)
+	grain_btn.toggled.connect(func(v): _apply_crt_slider("grain_intensity", CRT_GRAIN, grain_slider, v))
+	grain_slider.value_changed.connect(func(_v): _apply_crt_slider("grain_intensity", CRT_GRAIN, grain_slider, grain_btn.button_pressed))
+	chroma_btn.toggled.connect(func(v): _apply_crt_slider("chromatic_aberration", CRT_CHROMA, chroma_slider, v))
+	chroma_slider.value_changed.connect(func(_v): _apply_crt_slider("chromatic_aberration", CRT_CHROMA, chroma_slider, chroma_btn.button_pressed))
+	scanlines_btn.toggled.connect(func(v): _apply_crt_slider("scanline_intensity", CRT_SCANLINES, scanlines_slider, v))
+	scanlines_slider.value_changed.connect(func(_v): _apply_crt_slider("scanline_intensity", CRT_SCANLINES, scanlines_slider, scanlines_btn.button_pressed))
 	vignette_btn.toggled.connect(_on_vignette_toggled)
-	warble_btn.toggled.connect(func(v): _set_crt("warble_amount", CRT_WARBLE if v else 0.0))
+	vignette_slider.value_changed.connect(func(_v): _on_vignette_toggled(vignette_btn.button_pressed))
+	warble_btn.toggled.connect(func(v): _apply_crt_slider("warble_amount", CRT_WARBLE, warble_slider, v))
+	warble_slider.value_changed.connect(func(_v): _apply_crt_slider("warble_amount", CRT_WARBLE, warble_slider, warble_btn.button_pressed))
+	snapshot_btn.pressed.connect(_on_snapshot_pressed)
+	snapshot_dialog.file_selected.connect(_on_snapshot_path_selected)
 	bg_color_btn.color_changed.connect(_on_bg_color_changed)
+	DisplayServer.window_set_drop_files_callback(_on_files_dropped)
 
 	_try_autoload_latest_glb()
 
@@ -327,7 +346,6 @@ func _finish(ok: bool, msg: String, glb_path: String,
 		last_glb_path = glb_path
 		export_btn.disabled = false
 		result_label.text = "%d tris  ·  %dpx tex" % [best_tris, best_res]
-		result_label.visible = true
 		_load_glb(glb_path)
 	if pipeline_thread and pipeline_thread.is_started():
 		pipeline_thread.wait_to_finish()
@@ -668,31 +686,68 @@ func _encode_video(dest: String) -> void:
 
 
 func _on_pixelate_toggled(on: bool) -> void:
+	var win := DisplayServer.window_get_size()
+	var w3d := win.x - 280
 	if on:
-		viewport3d.size = Vector2i(320, 240)
+		var scale: float = pixelate_slider.value
+		viewport3d.size = Vector2i(maxi(int(w3d * scale), 2), maxi(int(win.y * scale), 2))
 		magnification_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	else:
-		var win := DisplayServer.window_get_size()
-		viewport3d.size = Vector2i(win.x - 280, win.y)
+		viewport3d.size = Vector2i(w3d, win.y)
 		magnification_rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 
 
-func _set_crt(param: String, value: float) -> void:
+func _on_wireframe_toggled(on: bool) -> void:
+	viewport3d.debug_draw = Viewport.DEBUG_DRAW_WIREFRAME if on else Viewport.DEBUG_DRAW_DISABLED
+
+
+func _apply_crt_slider(param: String, max_val: float, slider: HSlider, on: bool) -> void:
+	slider.editable = on
+	var val := slider.value * max_val if on else 0.0
 	if crt_rect.material is ShaderMaterial:
-		(crt_rect.material as ShaderMaterial).set_shader_parameter(param, value)
+		(crt_rect.material as ShaderMaterial).set_shader_parameter(param, val)
 	_refresh_crt_visibility()
 
 
 func _on_vignette_toggled(on: bool) -> void:
-	_set_crt("vignette_darkness",   CRT_VIGNETTE  if on else 0.0)
-	_set_crt("crt_vignette_power",  CRT_VIG_POWER if on else 0.0)
+	vignette_slider.editable = on
+	var t := vignette_slider.value if on else 0.0
+	if crt_rect.material is ShaderMaterial:
+		var mat := crt_rect.material as ShaderMaterial
+		mat.set_shader_parameter("vignette_darkness",  t * CRT_VIGNETTE)
+		mat.set_shader_parameter("crt_vignette_power", t * CRT_VIG_POWER)
+	_refresh_crt_visibility()
 
 
 func _refresh_crt_visibility() -> void:
-	var any_on := grain_btn.button_pressed or chroma_btn.button_pressed \
+	crt_rect.visible = grain_btn.button_pressed or chroma_btn.button_pressed \
 		or scanlines_btn.button_pressed or vignette_btn.button_pressed \
 		or warble_btn.button_pressed
-	crt_rect.visible = any_on
+
+
+func _on_snapshot_pressed() -> void:
+	var stem := selected_path.get_file().get_basename() if selected_path != "" else "lofi"
+	snapshot_dialog.current_file = stem + "_snap.png"
+	snapshot_dialog.popup_centered()
+
+
+func _on_snapshot_path_selected(dest: String) -> void:
+	if not dest.ends_with(".png"):
+		dest += ".png"
+	var img := viewport3d.get_texture().get_image()
+	img.save_png(dest)
+	_set_status("[color=green]Snapshot: %s[/color]" % dest.get_file())
+
+
+func _on_files_dropped(files: PackedStringArray) -> void:
+	if files.is_empty():
+		return
+	var path := files[0]
+	var ext := path.get_extension().to_lower()
+	if ext in ["obj", "glb", "gltf", "ply"]:
+		_on_file_selected(path)
+	else:
+		_set_status("[color=red]Drop a .obj, .glb, .gltf or .ply file.[/color]")
 
 
 # ─── Input ───────────────────────────────────────────────────────────────────
