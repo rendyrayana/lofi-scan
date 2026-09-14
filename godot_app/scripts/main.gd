@@ -20,8 +20,9 @@ var psx_shader: Shader
 var crt_shader: Shader
 
 # ─── App state ───────────────────────────────────────────────────────────────
-var selected_path: String = ""
-var repo_root:     String = ""
+var selected_path:         String = ""
+var selected_texture_path: String = ""
+var repo_root:             String = ""
 var pipeline_thread: Thread
 
 const PYTHON_BIN  := "/usr/bin/python3"
@@ -160,6 +161,14 @@ func _on_upload_pressed() -> void:
 
 func _on_file_selected(path: String) -> void:
 	selected_path = path
+	selected_texture_path = ""
+	if path.get_extension().to_lower() == "obj":
+		var base := path.get_basename()
+		for ext in ["jpg", "jpeg", "png", "tga"]:
+			var candidate := base + "." + ext
+			if FileAccess.file_exists(candidate):
+				selected_texture_path = candidate
+				break
 	input_label.text = path.get_file()
 	process_btn.disabled = false
 	_set_status("[color=yellow]Mesh selected — press Process to run pipeline.[/color]")
@@ -192,6 +201,7 @@ func _run_pipeline(mesh_path: String) -> void:
 		"render_resolution": 256, "bake_resolution": 1024,
 		"merge_distance": 0.0, "blender_bin": BLENDER_BIN,
 		"camera_distance": 2.5,
+		"input_texture": selected_texture_path if selected_texture_path != "" else null,
 	}
 	_write_json(cache.path_join("_godot_search.json"), search_cfg)
 
@@ -221,6 +231,7 @@ func _run_pipeline(mesh_path: String) -> void:
 		"resolutions": [16, 32, 64, 128, 256],
 		"render_resolution": 256, "merge_distance": 0.0,
 		"blender_bin": BLENDER_BIN, "camera_distance": 2.5,
+		"input_texture": selected_texture_path if selected_texture_path != "" else null,
 	}
 	_write_json(cache.path_join("_godot_tex.json"), tex_cfg)
 
