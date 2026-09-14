@@ -56,6 +56,9 @@ theme_override_font_sizes/font_size = 22
 [node name="UploadBtn" type="Button" parent="CanvasLayer/SidePanel/VBox"]
 text = "Upload Mesh…"
 
+[node name="BatchBtn" type="Button" parent="CanvasLayer/SidePanel/VBox"]
+text = "Batch Folder…"
+
 [node name="InputLabel" type="Label" parent="CanvasLayer/SidePanel/VBox"]
 custom_minimum_size = Vector2(4, 0)
 text = "No file selected"
@@ -177,3 +180,10 @@ size = Vector2i(900, 600)
 access = 2
 file_mode = 4
 filters = PackedStringArray("*.glb ; GLB Files")
+
+[node name="BatchDialog" type="FileDialog" parent="CanvasLayer"]
+visible = false
+title = "Select Folder to Batch Process"
+size = Vector2i(900, 600)
+access = 2
+file_mode = 2

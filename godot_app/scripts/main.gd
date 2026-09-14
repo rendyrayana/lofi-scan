@@ -17,8 +17,10 @@ extends Node3D
 @onready var bg_color_btn:   ColorPickerButton = $CanvasLayer/SidePanel/VBox/BGRow/BGColor
 @onready var turntable_btn:  CheckButton      = $CanvasLayer/SidePanel/VBox/TurntableBtn
 @onready var speed_slider:   HSlider          = $CanvasLayer/SidePanel/VBox/SpeedRow/SpeedSlider
+@onready var batch_btn:      Button           = $CanvasLayer/SidePanel/VBox/BatchBtn
 @onready var file_dialog:    FileDialog       = $CanvasLayer/FileDialog
 @onready var export_dialog:  FileDialog       = $CanvasLayer/ExportDialog
+@onready var batch_dialog:   FileDialog       = $CanvasLayer/BatchDialog
 
 # ─── 3D scene nodes (built in _ready) ────────────────────────────────────────
 var cam:        Camera3D
@@ -32,7 +34,9 @@ var selected_path:         String = ""
 var selected_texture_path: String = ""
 var last_glb_path:         String = ""
 var repo_root:             String = ""
-var pipeline_thread: Thread
+var pipeline_thread:  Thread
+var batch_thread:     Thread
+var batch_results:    Array = []
 
 const PYTHON_BIN  := "/usr/bin/python3"
 const BLENDER_BIN := "/Applications/Blender.app/Contents/MacOS/blender"
@@ -62,10 +66,12 @@ func _ready() -> void:
 	_setup_crt()
 
 	upload_btn.pressed.connect(_on_upload_pressed)
+	batch_btn.pressed.connect(_on_batch_pressed)
 	process_btn.pressed.connect(_on_process_pressed)
 	export_btn.pressed.connect(_on_export_pressed)
 	file_dialog.file_selected.connect(_on_file_selected)
 	export_dialog.file_selected.connect(_on_export_path_selected)
+	batch_dialog.dir_selected.connect(_on_batch_folder_selected)
 	snap_btn.toggled.connect(func(v): _set_all_shader_param("snap_vertices", v))
 	affine_btn.toggled.connect(func(v): _set_all_shader_param("use_affine_uv", v))
 	dither_btn.toggled.connect(func(v): _set_all_shader_param("use_dither", v))
@@ -310,6 +316,160 @@ func _on_export_path_selected(dest: String) -> void:
 		return
 	dst.store_buffer(src.get_buffer(src.get_length()))
 	_set_status("[color=green]Exported: %s[/color]" % dest.get_file())
+
+
+# ─── Batch ───────────────────────────────────────────────────────────────────
+
+func _on_batch_pressed() -> void:
+	batch_dialog.popup_centered()
+
+
+func _on_batch_folder_selected(folder: String) -> void:
+	upload_btn.disabled = true
+	batch_btn.disabled  = true
+	process_btn.disabled = true
+	export_btn.disabled  = true
+	batch_results.clear()
+	_set_status("[color=cyan]Scanning folder…[/color]")
+	batch_thread = Thread.new()
+	batch_thread.start(_run_batch.bind(folder))
+
+
+func _run_batch(folder: String) -> void:
+	var tier_idx: int  = tier_option.selected
+	var tier_num: int  = tier_idx + 1
+	var res_list: Array = TIER_RES[tier_idx]
+
+	# Collect .obj files
+	var meshes: Array[String] = []
+	var dir := DirAccess.open(folder)
+	if dir:
+		dir.list_dir_begin()
+		var f := dir.get_next()
+		while f != "":
+			if not dir.current_is_dir() and f.get_extension().to_lower() == "obj":
+				meshes.append(folder.path_join(f))
+			f = dir.get_next()
+		dir.list_dir_end()
+
+	if meshes.is_empty():
+		_batch_done.call_deferred(folder, false)
+		return
+
+	var total := meshes.size()
+	for i: int in total:
+		var mesh_path: String = meshes[i]
+		_set_status.call_deferred(
+			"[color=cyan][%d/%d] %s[/color]" % [i + 1, total, mesh_path.get_file()])
+
+		# Auto-detect texture
+		var tex_path: String = ""
+		var base := mesh_path.get_basename()
+		for ext: String in ["jpg", "jpeg", "png", "tga"]:
+			var candidate := base + "." + ext
+			if FileAccess.file_exists(candidate):
+				tex_path = candidate
+				break
+
+		var stem := mesh_path.get_file().get_basename()
+		var cache := repo_root.path_join("cache")
+		var search_out := cache.path_join(stem + "_search")
+		var search_cfg := {
+			"input_mesh": mesh_path, "tier": tier_num,
+			"output_dir": search_out,
+			"search_lo": 50, "search_hi": 5000, "max_iter": 12,
+			"render_resolution": 512, "bake_resolution": 1024,
+			"merge_distance": 0.0, "blender_bin": BLENDER_BIN,
+			"camera_distance": 2.5,
+			"input_texture": tex_path if tex_path != "" else null,
+		}
+		_write_json(cache.path_join("_batch_search.json"), search_cfg)
+
+		var out: Array = []
+		var code := OS.execute(PYTHON_BIN,
+			[repo_root.path_join("blender_scripts/search.py"),
+			 cache.path_join("_batch_search.json")], out, true)
+		var best_tris := 500
+		if code == 0:
+			var geo_log := _read_json(search_out.path_join("search_log.json"))
+			best_tris = int(geo_log.get("best_tris", 500))
+
+		var tex_out := cache.path_join(stem + "_tex")
+		var tex_cfg := {
+			"input_mesh": mesh_path, "fixed_tri_count": best_tris,
+			"tier": tier_num, "output_dir": tex_out,
+			"resolutions": res_list,
+			"render_resolution": 512, "merge_distance": 0.0,
+			"blender_bin": BLENDER_BIN, "camera_distance": 2.5,
+			"input_texture": tex_path if tex_path != "" else null,
+		}
+		_write_json(cache.path_join("_batch_tex.json"), tex_cfg)
+
+		out.clear()
+		code = OS.execute(PYTHON_BIN,
+			[repo_root.path_join("blender_scripts/texture_sweep.py"),
+			 cache.path_join("_batch_tex.json")], out, true)
+
+		var best_res := 0
+		var glb_path := ""
+		var ssim := 0.0
+		if code == 0:
+			var tex_log := _read_json(tex_out.path_join("texture_sweep_log.json"))
+			best_res  = int(tex_log.get("best_resolution", 0))
+			ssim      = float(tex_log.get("best_ssim", 0.0))
+			glb_path  = (tex_log.get("output_dir", "") as String).path_join("mesh_lo.glb")
+
+		batch_results.append({
+			"file":     mesh_path.get_file(),
+			"tris":     best_tris,
+			"tex_res":  best_res,
+			"ssim":     ssim,
+			"glb":      glb_path,
+			"ok":       code == 0,
+		})
+
+	_batch_done.call_deferred(folder, true)
+
+
+func _batch_done(folder: String, ok: bool) -> void:
+	upload_btn.disabled  = false
+	batch_btn.disabled   = false
+	process_btn.disabled = selected_path.is_empty()
+
+	if not ok:
+		_set_status("[color=red]No .obj files found in folder.[/color]")
+		if batch_thread and batch_thread.is_started():
+			batch_thread.wait_to_finish()
+		return
+
+	# Write manifest JSON
+	var manifest_path := folder.path_join("lofi_manifest.json")
+	_write_json(manifest_path, {"results": batch_results})
+
+	# Write manifest CSV
+	var csv_path := folder.path_join("lofi_manifest.csv")
+	var csv := FileAccess.open(csv_path, FileAccess.WRITE)
+	if csv:
+		csv.store_line("file,tris,tex_res,ssim,ok,glb")
+		for r: Dictionary in batch_results:
+			csv.store_line("%s,%d,%d,%.4f,%s,%s" % [
+				r["file"], r["tris"], r["tex_res"], r["ssim"],
+				"true" if r["ok"] else "false", r["glb"]
+			])
+
+	var done_count := batch_results.filter(func(r): return r["ok"]).size()
+	_set_status("[color=green]Batch done: %d/%d  —  manifest saved.[/color]" \
+		% [done_count, batch_results.size()])
+
+	# Preview last successful GLB
+	for r: Dictionary in batch_results:
+		if r["ok"] and FileAccess.file_exists(r["glb"] as String):
+			last_glb_path = r["glb"]
+			export_btn.disabled = false
+			_load_glb(r["glb"])
+
+	if batch_thread and batch_thread.is_started():
+		batch_thread.wait_to_finish()
 
 
 # ─── GLB loading ─────────────────────────────────────────────────────────────
