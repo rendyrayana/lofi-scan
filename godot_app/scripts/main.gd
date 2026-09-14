@@ -49,13 +49,12 @@ var batch_thread:     Thread
 var batch_results:    Array = []
 
 # Recording
-const RECORD_FRAMES    := 72       # frames captured (72 × 5° = 360°)
-const RECORD_FPS       := 24
-const FFMPEG_PATHS     := ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"]
-var recording:         bool   = false
-var record_frame_idx:  int    = 0
-var record_dir:        String = ""
-var record_format:     String = "mp4"
+const RECORD_FRAMES := 72   # 72 × 5° = 360°
+const RECORD_FPS    := 24
+var recording:        bool   = false
+var record_frame_idx: int    = 0
+var record_dir:       String = ""
+var record_format:    String = "mp4"
 
 const PYTHON_BIN  := "/usr/bin/python3"
 const BLENDER_BIN := "/Applications/Blender.app/Contents/MacOS/blender"
@@ -623,10 +622,6 @@ func _on_bg_color_changed(color: Color) -> void:
 func _on_record_pressed() -> void:
 	if recording:
 		return
-	var ff := _find_ffmpeg()
-	if ff.is_empty():
-		_set_status("[color=red]ffmpeg not found.\nInstall: brew install ffmpeg[/color]")
-		return
 	record_format = "gif" if fmt_option.selected == 1 else "mp4"
 	var stem := selected_path.get_file().get_basename() if selected_path != "" else "lofi"
 	video_dialog.current_file = stem + "_360." + record_format
@@ -658,36 +653,18 @@ func _capture_record_frame() -> void:
 
 
 func _encode_video(dest: String) -> void:
-	var ff := _find_ffmpeg()
+	_set_status("[color=cyan]Encoding %s…[/color]" % record_format)
 	var out: Array = []
-	var args: Array
-	if record_format == "gif":
-		# palette-based gif for quality
-		var palette := record_dir.path_join("palette.png")
-		OS.execute(ff, ["-y", "-framerate", str(RECORD_FPS),
-			"-i", record_dir.path_join("frame_%04d.png"),
-			"-vf", "palettegen", palette], out, true)
-		args = ["-y", "-framerate", str(RECORD_FPS),
-			"-i", record_dir.path_join("frame_%04d.png"),
-			"-i", palette, "-lavfi", "paletteuse", dest]
-	else:
-		args = ["-y", "-framerate", str(RECORD_FPS),
-			"-i", record_dir.path_join("frame_%04d.png"),
-			"-c:v", "libx264", "-pix_fmt", "yuv420p",
-			"-crf", "18", dest]
-	var code := OS.execute(ff, args, out, true)
+	var code := OS.execute(PYTHON_BIN, [
+		repo_root.path_join("blender_scripts/make_video.py"),
+		record_dir, dest, str(RECORD_FPS),
+	], out, true)
 	record_btn.disabled = false
 	if code == 0:
 		_set_status("[color=green]Video saved: %s[/color]" % dest.get_file())
 	else:
-		_set_status("[color=red]ffmpeg encode failed (exit %d)[/color]" % code)
-
-
-func _find_ffmpeg() -> String:
-	for p: String in FFMPEG_PATHS:
-		if FileAccess.file_exists(p):
-			return p
-	return ""
+		push_error("[make_video] %s" % "\n".join(out))
+		_set_status("[color=red]Encode failed — see Godot output.[/color]")
 
 
 func _on_pixelate_toggled(on: bool) -> void:
