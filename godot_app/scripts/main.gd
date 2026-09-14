@@ -11,15 +11,19 @@ extends Node3D
 @onready var snap_btn:     CheckButton   = $CanvasLayer/SidePanel/VBox/SnapBtn
 @onready var affine_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/AffineBtn
 @onready var dither_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/DitherBtn
-@onready var tier_option:  OptionButton  = $CanvasLayer/SidePanel/VBox/TierRow/TierOption
-@onready var result_label: Label         = $CanvasLayer/SidePanel/VBox/ResultLabel
-@onready var export_btn:   Button        = $CanvasLayer/SidePanel/VBox/ExportBtn
-@onready var file_dialog:  FileDialog    = $CanvasLayer/FileDialog
-@onready var export_dialog: FileDialog   = $CanvasLayer/ExportDialog
+@onready var tier_option:    OptionButton     = $CanvasLayer/SidePanel/VBox/TierRow/TierOption
+@onready var result_label:   Label            = $CanvasLayer/SidePanel/VBox/ResultLabel
+@onready var export_btn:     Button           = $CanvasLayer/SidePanel/VBox/ExportBtn
+@onready var bg_color_btn:   ColorPickerButton = $CanvasLayer/SidePanel/VBox/BGRow/BGColor
+@onready var turntable_btn:  CheckButton      = $CanvasLayer/SidePanel/VBox/TurntableBtn
+@onready var speed_slider:   HSlider          = $CanvasLayer/SidePanel/VBox/SpeedRow/SpeedSlider
+@onready var file_dialog:    FileDialog       = $CanvasLayer/FileDialog
+@onready var export_dialog:  FileDialog       = $CanvasLayer/ExportDialog
 
 # ─── 3D scene nodes (built in _ready) ────────────────────────────────────────
 var cam:        Camera3D
 var model_root: Node3D
+var world_env:  WorldEnvironment
 var psx_shader: Shader
 var crt_shader: Shader
 
@@ -65,6 +69,7 @@ func _ready() -> void:
 	snap_btn.toggled.connect(func(v): _set_all_shader_param("snap_vertices", v))
 	affine_btn.toggled.connect(func(v): _set_all_shader_param("use_affine_uv", v))
 	dither_btn.toggled.connect(func(v): _set_all_shader_param("use_dither", v))
+	bg_color_btn.color_changed.connect(_on_bg_color_changed)
 
 	_try_autoload_latest_glb()
 
@@ -89,9 +94,9 @@ func _build_3d_scene() -> void:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(1, 1, 1)
 	env.ambient_light_energy = 0.2
-	var we := WorldEnvironment.new()
-	we.environment = env
-	viewport3d.add_child(we)
+	world_env = WorldEnvironment.new()
+	world_env.environment = env
+	viewport3d.add_child(world_env)
 
 	model_root = Node3D.new()
 	viewport3d.add_child(model_root)
@@ -398,6 +403,19 @@ func _update_camera() -> void:
 		orbit_dist * cos(pr) * cos(yr),
 	)
 	cam.look_at(orbit_center, Vector3.UP)
+
+
+# ─── Turntable & BG ─────────────────────────────────────────────────────────
+
+func _process(delta: float) -> void:
+	if turntable_btn.button_pressed and not _aabb_empty:
+		orbit_yaw += speed_slider.value * delta
+		_update_camera()
+
+
+func _on_bg_color_changed(color: Color) -> void:
+	if world_env and world_env.environment:
+		world_env.environment.background_color = color
 
 
 # ─── Input ───────────────────────────────────────────────────────────────────

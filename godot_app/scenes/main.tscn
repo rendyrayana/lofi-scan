@@ -129,6 +129,36 @@ text = "Affine UV"
 button_pressed = true
 text = "Dither"
 
+[node name="HSep4" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
+
+[node name="SceneTitle" type="Label" parent="CanvasLayer/SidePanel/VBox"]
+text = "Scene"
+
+[node name="BGRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+
+[node name="BGLabel" type="Label" parent="CanvasLayer/SidePanel/VBox/BGRow"]
+text = "Background "
+theme_override_font_sizes/font_size = 12
+
+[node name="BGColor" type="ColorPickerButton" parent="CanvasLayer/SidePanel/VBox/BGRow"]
+size_flags_horizontal = 3
+color = Color(0.118, 0.118, 0.118, 1)
+
+[node name="TurntableBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+text = "Turntable"
+
+[node name="SpeedRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+
+[node name="SpeedLabel" type="Label" parent="CanvasLayer/SidePanel/VBox/SpeedRow"]
+text = "Speed "
+theme_override_font_sizes/font_size = 12
+
+[node name="SpeedSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/SpeedRow"]
+size_flags_horizontal = 3
+min_value = 5.0
+max_value = 120.0
+value = 30.0
+
 [node name="Spacer" type="Control" parent="CanvasLayer/SidePanel/VBox"]
 size_flags_vertical = 3
 
