@@ -164,7 +164,7 @@ func _on_file_selected(path: String) -> void:
 	selected_texture_path = ""
 	if path.get_extension().to_lower() == "obj":
 		var base := path.get_basename()
-		for ext in ["jpg", "jpeg", "png", "tga"]:
+		for ext: String in ["jpg", "jpeg", "png", "tga"]:
 			var candidate := base + "." + ext
 			if FileAccess.file_exists(candidate):
 				selected_texture_path = candidate
