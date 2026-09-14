@@ -24,6 +24,7 @@ stretch = true
 
 [node name="Viewport3D" type="SubViewport" parent="HSplitContainer/SubViewportContainer"]
 handle_input_locally = false
+own_world_3d = true
 size = Vector2i(1024, 720)
 
 [node name="SidePanel" type="Panel" parent="HSplitContainer"]
@@ -55,6 +56,7 @@ text = "Upload Mesh…"
 
 [node name="InputLabel" type="Label" parent="HSplitContainer/SidePanel/VBox"]
 layout_mode = 2
+custom_minimum_size = Vector2(4, 0)
 text = "No file selected"
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 11

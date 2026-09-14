@@ -192,11 +192,11 @@ func _run_pipeline(mesh_path: String) -> void:
 			"[color=red]Geometry search failed (exit %d). Check terminal.[/color]" % code, "")
 		return
 
-	var log := _read_json(search_out.path_join("search_log.json"))
-	if log.is_empty():
+	var geo_log := _read_json(search_out.path_join("search_log.json"))
+	if geo_log.is_empty():
 		_finish.call_deferred(false, "[color=red]search_log.json not found.[/color]", "")
 		return
-	var best_tris := int(log.get("best_tris", 500))
+	var best_tris := int(geo_log.get("best_tris", 500))
 
 	_set_status.call_deferred(
 		"[color=cyan]Geometry: %d tris found. Running texture sweep…[/color]" % best_tris)
