@@ -15,6 +15,8 @@ Config JSON fields:
     merge_distance   (float) Vertex-merge threshold; 0 = auto.
     render_resolution(int)   Square render size in pixels (default 256).
     camera_distance  (float) Camera distance multiplier vs bounding-sphere radius (default 2.5).
+    use_texture      (bool)  If true, keep original material instead of flat grey (default false).
+    input_texture    (str)   Optional explicit texture path when use_texture=true on an .obj.
 
 Outputs:
     view_front.png, view_3q.png, view_top.png   — grayscale-friendly renders
@@ -133,6 +135,8 @@ def main():
     merge_distance   = float(cfg.get("merge_distance", 0.0))
     render_res       = int(cfg.get("render_resolution", 256))
     cam_dist_factor  = float(cfg.get("camera_distance", 2.5))
+    use_texture      = bool(cfg.get("use_texture", False))
+    input_texture    = cfg.get("input_texture")
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -166,8 +170,31 @@ def main():
 
     final_tris = count_tris(obj)
 
-    # -- Flat neutral material --
-    assign_flat_material(obj)
+    # -- Material: flat grey for shape scoring; keep original for texture scoring --
+    if use_texture:
+        # If an explicit texture path was given, wire it into the first material.
+        # GLB files already have texture embedded — nothing extra needed there.
+        if input_texture:
+            image = bpy.data.images.load(os.path.abspath(input_texture))
+            if not obj.data.materials:
+                mat = bpy.data.materials.new("TexMat")
+                mat.use_nodes = True
+                obj.data.materials.append(mat)
+            mat = obj.data.materials[0]
+            mat.use_nodes = True
+            nodes = mat.node_tree.nodes
+            img_nodes = [n for n in nodes if n.type == "TEX_IMAGE"]
+            if img_nodes:
+                img_nodes[0].image = image
+            else:
+                img_node = nodes.new("ShaderNodeTexImage")
+                img_node.image = image
+                bsdf = next((n for n in nodes if n.type == "BSDF_PRINCIPLED"), None)
+                if bsdf:
+                    mat.node_tree.links.new(img_node.outputs["Color"],
+                                            bsdf.inputs["Base Color"])
+    else:
+        assign_flat_material(obj)
 
     # -- Camera positions (fixed relative to bounding box) --
     center, radius = bbox_center_and_radius(obj)
