@@ -1,0 +1,31 @@
+# Raw scan data (ownership/rights unclear — never publish by default)
+/scans/
+/raw_scans/
+
+# Generated pipeline outputs (regenerable, often large binaries)
+# Use /* + negation so .gitkeep can still be tracked
+/cache/*
+!/cache/.gitkeep
+/video_out/*
+!/video_out/.gitkeep
+*.blend1
+*.blend2
+
+# Manifests (including per-object thumbnails) ARE committed — they are the
+# visual evidence behind recognizability scores. See docs/github-setup-guide.md
+# section 3a for the one-time review required before going public.
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Godot
+.godot/
+*.import
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
