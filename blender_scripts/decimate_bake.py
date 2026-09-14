@@ -207,7 +207,31 @@ def main():
     hi_res.data.materials.append(hi_emit_mat)
 
     # ------------------------------------------------------------------
-    # 5. Duplicate hi-res → lo-res (for decimation)
+    # 5. Merge vertices by distance on hi-res before duplicating.
+    #    Raw scan meshes are often "triangle soup" — every triangle is a
+    #    disconnected island with no shared vertices. The Decimate modifier
+    #    can't collapse isolated triangles, so without this step it just
+    #    picks N random floating triangles instead of simplifying the shape.
+    #    Merging welds spatially coincident vertices into a proper mesh.
+    # ------------------------------------------------------------------
+    merge_distance = float(cfg.get("merge_distance", 0.0))
+    if merge_distance <= 0:
+        # Auto: 0.1% of shortest bounding-box dimension
+        dims = hi_res.dimensions
+        merge_distance = min(dims.x, dims.y, dims.z) * 0.001
+    print(f"[decimate_bake] Merging vertices (threshold {merge_distance:.6f})…")
+
+    select_only(hi_res, context)
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.remove_doubles(threshold=merge_distance)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    merged_tri_count = count_tris(hi_res)
+    print(f"[decimate_bake] After merge: {merged_tri_count} tris, "
+          f"{len(hi_res.data.vertices)} verts")
+
+    # ------------------------------------------------------------------
+    # 6. Duplicate hi-res → lo-res (for decimation)
     # ------------------------------------------------------------------
     select_only(hi_res, context)
     bpy.ops.object.duplicate()
@@ -215,9 +239,9 @@ def main():
     lo_res.name = "LoRes"
 
     # ------------------------------------------------------------------
-    # 6. Decimate
+    # 7. Decimate (ratio against post-merge count, not raw import count)
     # ------------------------------------------------------------------
-    ratio = min(target_tri_count / max(original_tri_count, 1), 1.0)
+    ratio = min(target_tri_count / max(merged_tri_count, 1), 1.0)
     mod = lo_res.modifiers.new("Decimate", "DECIMATE")
     mod.decimate_type = "COLLAPSE"
     mod.ratio = ratio
@@ -225,11 +249,11 @@ def main():
 
     apply_modifier(lo_res, "Decimate", context)
     final_tri_count = count_tris(lo_res)
-    print(f"[decimate_bake] Decimated: {original_tri_count} → {final_tri_count} tris "
+    print(f"[decimate_bake] Decimated: {merged_tri_count} → {final_tri_count} tris "
           f"(target {target_tri_count})")
 
     # ------------------------------------------------------------------
-    # 7. Fresh UV unwrap on lo-res.
+    # 8. Fresh UV unwrap on lo-res.
     #    The inherited hi-res UV layout is meaningless after aggressive
     #    decimation — islands shrink to specks and the bake comes out black.
     #    Always re-unwrap after decimating.
