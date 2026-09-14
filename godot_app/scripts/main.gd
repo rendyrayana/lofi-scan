@@ -24,6 +24,7 @@ var selected_path: String = ""
 var repo_root:     String = ""
 var pipeline_thread: Thread
 
+const PYTHON_BIN  := "/usr/bin/python3"
 const BLENDER_BIN := "/Applications/Blender.app/Contents/MacOS/blender"
 const TIER        := 2
 
@@ -195,12 +196,13 @@ func _run_pipeline(mesh_path: String) -> void:
 	_write_json(cache.path_join("_godot_search.json"), search_cfg)
 
 	var out := []
-	var code := OS.execute("python3",
+	var code := OS.execute(PYTHON_BIN,
 		[repo_root.path_join("blender_scripts/search.py"),
 		 cache.path_join("_godot_search.json")], out, true)
 	if code != 0:
+		push_error("[search] exit %d\n%s" % [code, "\n".join(out)])
 		_finish.call_deferred(false,
-			"[color=red]Search failed (exit %d).[/color]" % code, "")
+			"[color=red]Search failed (exit %d) — see Godot output.[/color]" % code, "")
 		return
 
 	var geo_log := _read_json(search_out.path_join("search_log.json"))
@@ -223,12 +225,13 @@ func _run_pipeline(mesh_path: String) -> void:
 	_write_json(cache.path_join("_godot_tex.json"), tex_cfg)
 
 	out.clear()
-	code = OS.execute("python3",
+	code = OS.execute(PYTHON_BIN,
 		[repo_root.path_join("blender_scripts/texture_sweep.py"),
 		 cache.path_join("_godot_tex.json")], out, true)
 	if code != 0:
+		push_error("[tex_sweep] exit %d\n%s" % [code, "\n".join(out)])
 		_finish.call_deferred(false,
-			"[color=red]Texture sweep failed (exit %d).[/color]" % code, "")
+			"[color=red]Texture sweep failed (exit %d) — see Godot output.[/color]" % code, "")
 		return
 
 	var tex_log := _read_json(tex_out.path_join("texture_sweep_log.json"))
