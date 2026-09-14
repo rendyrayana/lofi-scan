@@ -11,7 +11,11 @@ extends Node3D
 @onready var snap_btn:     CheckButton   = $CanvasLayer/SidePanel/VBox/SnapBtn
 @onready var affine_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/AffineBtn
 @onready var dither_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/DitherBtn
+@onready var tier_option:  OptionButton  = $CanvasLayer/SidePanel/VBox/TierRow/TierOption
+@onready var result_label: Label         = $CanvasLayer/SidePanel/VBox/ResultLabel
+@onready var export_btn:   Button        = $CanvasLayer/SidePanel/VBox/ExportBtn
 @onready var file_dialog:  FileDialog    = $CanvasLayer/FileDialog
+@onready var export_dialog: FileDialog   = $CanvasLayer/ExportDialog
 
 # ─── 3D scene nodes (built in _ready) ────────────────────────────────────────
 var cam:        Camera3D
@@ -22,12 +26,16 @@ var crt_shader: Shader
 # ─── App state ───────────────────────────────────────────────────────────────
 var selected_path:         String = ""
 var selected_texture_path: String = ""
+var last_glb_path:         String = ""
 var repo_root:             String = ""
 var pipeline_thread: Thread
 
 const PYTHON_BIN  := "/usr/bin/python3"
 const BLENDER_BIN := "/Applications/Blender.app/Contents/MacOS/blender"
-const TIER        := 2
+
+# Tier 1=draft 2=fast 3=quality 4=max  (index matches OptionButton selected)
+const TIER_SSIM  := [0.70, 0.85, 0.92, 0.97]
+const TIER_RES   := [[64, 128], [64, 128, 256], [128, 256, 512], [256, 512, 1024]]
 
 # ─── Orbit camera ────────────────────────────────────────────────────────────
 var orbit_yaw:    float   = 30.0
@@ -51,7 +59,9 @@ func _ready() -> void:
 
 	upload_btn.pressed.connect(_on_upload_pressed)
 	process_btn.pressed.connect(_on_process_pressed)
+	export_btn.pressed.connect(_on_export_pressed)
 	file_dialog.file_selected.connect(_on_file_selected)
+	export_dialog.file_selected.connect(_on_export_path_selected)
 	snap_btn.toggled.connect(func(v): _set_all_shader_param("snap_vertices", v))
 	affine_btn.toggled.connect(func(v): _set_all_shader_param("use_affine_uv", v))
 	dither_btn.toggled.connect(func(v): _set_all_shader_param("use_dither", v))
@@ -189,16 +199,21 @@ func _on_process_pressed() -> void:
 
 
 func _run_pipeline(mesh_path: String) -> void:
+	var tier_idx: int = tier_option.selected  # 0-3
+	var tier_num: int = tier_idx + 1
+	var ssim_thresh: float = TIER_SSIM[tier_idx]
+	var res_list: Array = TIER_RES[tier_idx]
+
 	var stem := mesh_path.get_file().get_basename()
 	var cache := repo_root.path_join("cache")
 	DirAccess.make_dir_recursive_absolute(cache)
 
 	var search_out := cache.path_join(stem + "_search")
 	var search_cfg := {
-		"input_mesh": mesh_path, "tier": TIER,
+		"input_mesh": mesh_path, "tier": tier_num,
 		"output_dir": search_out,
 		"search_lo": 50, "search_hi": 5000, "max_iter": 12,
-		"render_resolution": 256, "bake_resolution": 1024,
+		"render_resolution": 512, "bake_resolution": 1024,
 		"merge_distance": 0.0, "blender_bin": BLENDER_BIN,
 		"camera_distance": 2.5,
 		"input_texture": selected_texture_path if selected_texture_path != "" else null,
@@ -227,8 +242,8 @@ func _run_pipeline(mesh_path: String) -> void:
 	var tex_out := cache.path_join(stem + "_tex")
 	var tex_cfg := {
 		"input_mesh": mesh_path, "fixed_tri_count": best_tris,
-		"tier": TIER, "output_dir": tex_out,
-		"resolutions": [64, 128, 256],
+		"tier": tier_num, "output_dir": tex_out,
+		"resolutions": res_list,
 		"render_resolution": 512, "merge_distance": 0.0,
 		"blender_bin": BLENDER_BIN, "camera_distance": 2.5,
 		"input_texture": selected_texture_path if selected_texture_path != "" else null,
@@ -253,17 +268,43 @@ func _run_pipeline(mesh_path: String) -> void:
 	var glb: String = (tex_log.get("output_dir", "") as String).path_join("mesh_lo.glb")
 	var best_res := int(tex_log.get("best_resolution", 0))
 	_finish.call_deferred(true,
-		"[color=green]Done!  %d tris  ·  %dpx tex[/color]" % [best_tris, best_res], glb)
+		"[color=green]Done![/color]",
+		glb, best_tris, best_res)
 
 
-func _finish(ok: bool, msg: String, glb_path: String) -> void:
+func _finish(ok: bool, msg: String, glb_path: String,
+		best_tris: int = 0, best_res: int = 0) -> void:
 	_set_status(msg)
 	upload_btn.disabled = false
 	process_btn.disabled = false
 	if ok and glb_path != "":
+		last_glb_path = glb_path
+		export_btn.disabled = false
+		result_label.text = "%d tris  ·  %dpx tex" % [best_tris, best_res]
+		result_label.visible = true
 		_load_glb(glb_path)
 	if pipeline_thread and pipeline_thread.is_started():
 		pipeline_thread.wait_to_finish()
+
+
+func _on_export_pressed() -> void:
+	if last_glb_path.is_empty():
+		return
+	var stem := selected_path.get_file().get_basename() if selected_path != "" else "export"
+	export_dialog.current_file = stem + "_lofi.glb"
+	export_dialog.popup_centered()
+
+
+func _on_export_path_selected(dest: String) -> void:
+	if not dest.ends_with(".glb"):
+		dest += ".glb"
+	var src := FileAccess.open(last_glb_path, FileAccess.READ)
+	var dst := FileAccess.open(dest, FileAccess.WRITE)
+	if src == null or dst == null:
+		_set_status("[color=red]Export failed — could not copy file.[/color]")
+		return
+	dst.store_buffer(src.get_buffer(src.get_length()))
+	_set_status("[color=green]Exported: %s[/color]" % dest.get_file())
 
 
 # ─── GLB loading ─────────────────────────────────────────────────────────────

@@ -64,13 +64,29 @@ theme_override_font_sizes/font_size = 11
 
 [node name="HSep1" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
 
+[node name="TierRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+
+[node name="TierLabel" type="Label" parent="CanvasLayer/SidePanel/VBox/TierRow"]
+text = "Quality "
+theme_override_font_sizes/font_size = 12
+
+[node name="TierOption" type="OptionButton" parent="CanvasLayer/SidePanel/VBox/TierRow"]
+size_flags_horizontal = 3
+item_count = 4
+popup/item_0/text = "Tier 1  (draft)"
+popup/item_0/id = 0
+popup/item_1/text = "Tier 2  (fast)"
+popup/item_1/id = 1
+popup/item_1/checked = true
+popup/item_2/text = "Tier 3  (quality)"
+popup/item_2/id = 2
+popup/item_3/text = "Tier 4  (max)"
+popup/item_3/id = 3
+selected = 1
+
 [node name="ProcessBtn" type="Button" parent="CanvasLayer/SidePanel/VBox"]
 text = "Process"
 disabled = true
-
-[node name="TierLabel" type="Label" parent="CanvasLayer/SidePanel/VBox"]
-text = "Tier 2  (SSIM ≥ 0.85)"
-theme_override_font_sizes/font_size = 11
 
 [node name="HSep2" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
 
@@ -78,12 +94,23 @@ theme_override_font_sizes/font_size = 11
 text = "Status"
 
 [node name="StatusLabel" type="RichTextLabel" parent="CanvasLayer/SidePanel/VBox"]
-custom_minimum_size = Vector2(0, 80)
+custom_minimum_size = Vector2(0, 60)
 size_flags_vertical = 3
 bbcode_enabled = true
 fit_content = false
 scroll_active = true
 text = "[color=gray]Ready.[/color]"
+
+[node name="ResultLabel" type="Label" parent="CanvasLayer/SidePanel/VBox"]
+custom_minimum_size = Vector2(4, 0)
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 11
+text = ""
+visible = false
+
+[node name="ExportBtn" type="Button" parent="CanvasLayer/SidePanel/VBox"]
+text = "Export GLB…"
+disabled = true
 
 [node name="HSep3" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
 
@@ -112,3 +139,11 @@ size = Vector2i(900, 600)
 access = 2
 file_mode = 0
 filters = PackedStringArray("*.obj,*.glb,*.gltf,*.ply ; Mesh Files")
+
+[node name="ExportDialog" type="FileDialog" parent="CanvasLayer"]
+visible = false
+title = "Export GLB"
+size = Vector2i(900, 600)
+access = 2
+file_mode = 4
+filters = PackedStringArray("*.glb ; GLB Files")
