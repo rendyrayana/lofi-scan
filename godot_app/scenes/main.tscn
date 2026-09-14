@@ -1,37 +1,43 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 
-[node name="Main" type="Control"]
-layout_mode = 3
+[sub_resource type="ViewportTexture" id="ViewportTexture_main"]
+viewport_path = NodePath("../SubViewport")
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+size = Vector2i(320, 240)
+render_target_update_mode = 4
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Magnification" type="TextureRect" parent="CanvasLayer"]
+texture_filter = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1")
+texture = SubResource("ViewportTexture_main")
+stretch_mode = 5
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
-layout_mode = 1
+[node name="CRT" type="ColorRect" parent="CanvasLayer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-stretch = true
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="Viewport3D" type="SubViewport" parent="SubViewportContainer"]
-own_world_3d = true
-handle_input_locally = false
-size = Vector2i(1280, 720)
-
-[node name="SidePanel" type="Panel" parent="."]
-layout_mode = 1
+[node name="SidePanel" type="Panel" parent="CanvasLayer"]
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -280.0
 
-[node name="VBox" type="VBoxContainer" parent="SidePanel"]
-layout_mode = 1
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/SidePanel"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -41,47 +47,37 @@ offset_right = -10.0
 offset_bottom = -10.0
 theme_override_constants/separation = 6
 
-[node name="Title" type="Label" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="Title" type="Label" parent="CanvasLayer/SidePanel/VBox"]
 text = "lofi-scan"
 theme_override_font_sizes/font_size = 22
 
-[node name="HSep0" type="HSeparator" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="HSep0" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
 
-[node name="UploadBtn" type="Button" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="UploadBtn" type="Button" parent="CanvasLayer/SidePanel/VBox"]
 text = "Upload Mesh…"
 
-[node name="InputLabel" type="Label" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="InputLabel" type="Label" parent="CanvasLayer/SidePanel/VBox"]
 custom_minimum_size = Vector2(4, 0)
 text = "No file selected"
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 11
 
-[node name="HSep1" type="HSeparator" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="HSep1" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
 
-[node name="ProcessBtn" type="Button" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="ProcessBtn" type="Button" parent="CanvasLayer/SidePanel/VBox"]
 text = "Process"
 disabled = true
 
-[node name="TierLabel" type="Label" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="TierLabel" type="Label" parent="CanvasLayer/SidePanel/VBox"]
 text = "Tier 2  (SSIM ≥ 0.85)"
 theme_override_font_sizes/font_size = 11
 
-[node name="HSep2" type="HSeparator" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="HSep2" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
 
-[node name="StatusTitle" type="Label" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="StatusTitle" type="Label" parent="CanvasLayer/SidePanel/VBox"]
 text = "Status"
 
-[node name="StatusLabel" type="RichTextLabel" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="StatusLabel" type="RichTextLabel" parent="CanvasLayer/SidePanel/VBox"]
 custom_minimum_size = Vector2(0, 80)
 size_flags_vertical = 3
 bbcode_enabled = true
@@ -89,33 +85,27 @@ fit_content = false
 scroll_active = true
 text = "[color=gray]Ready.[/color]"
 
-[node name="HSep3" type="HSeparator" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="HSep3" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
 
-[node name="PSXTitle" type="Label" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="PSXTitle" type="Label" parent="CanvasLayer/SidePanel/VBox"]
 text = "PSX Settings"
 
-[node name="SnapBtn" type="CheckButton" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="SnapBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
 button_pressed = true
 text = "Snap Vertices"
 
-[node name="AffineBtn" type="CheckButton" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="AffineBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
 button_pressed = true
 text = "Affine UV"
 
-[node name="DitherBtn" type="CheckButton" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="DitherBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
 button_pressed = true
 text = "Dither"
 
-[node name="Spacer" type="Control" parent="SidePanel/VBox"]
-layout_mode = 2
+[node name="Spacer" type="Control" parent="CanvasLayer/SidePanel/VBox"]
 size_flags_vertical = 3
 
-[node name="FileDialog" type="FileDialog" parent="."]
+[node name="FileDialog" type="FileDialog" parent="CanvasLayer"]
 visible = false
 title = "Open Scan Mesh"
 size = Vector2i(900, 600)

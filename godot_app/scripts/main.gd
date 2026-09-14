@@ -1,20 +1,23 @@
-extends Control
+extends Node3D
 
 # ─── Node refs ───────────────────────────────────────────────────────────────
-@onready var viewport3d:   SubViewport   = $SubViewportContainer/Viewport3D
-@onready var upload_btn:   Button        = $SidePanel/VBox/UploadBtn
-@onready var process_btn:  Button        = $SidePanel/VBox/ProcessBtn
-@onready var input_label:  Label         = $SidePanel/VBox/InputLabel
-@onready var status_label: RichTextLabel = $SidePanel/VBox/StatusLabel
-@onready var snap_btn:     CheckButton   = $SidePanel/VBox/SnapBtn
-@onready var affine_btn:   CheckButton   = $SidePanel/VBox/AffineBtn
-@onready var dither_btn:   CheckButton   = $SidePanel/VBox/DitherBtn
-@onready var file_dialog:  FileDialog    = $FileDialog
+@onready var viewport3d:   SubViewport   = $SubViewport
+@onready var crt_rect:     ColorRect     = $CanvasLayer/CRT
+@onready var side_panel:   Panel         = $CanvasLayer/SidePanel
+@onready var upload_btn:   Button        = $CanvasLayer/SidePanel/VBox/UploadBtn
+@onready var process_btn:  Button        = $CanvasLayer/SidePanel/VBox/ProcessBtn
+@onready var input_label:  Label         = $CanvasLayer/SidePanel/VBox/InputLabel
+@onready var status_label: RichTextLabel = $CanvasLayer/SidePanel/VBox/StatusLabel
+@onready var snap_btn:     CheckButton   = $CanvasLayer/SidePanel/VBox/SnapBtn
+@onready var affine_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/AffineBtn
+@onready var dither_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/DitherBtn
+@onready var file_dialog:  FileDialog    = $CanvasLayer/FileDialog
 
-# ─── 3D scene nodes (created in _ready) ──────────────────────────────────────
+# ─── 3D scene nodes (built in _ready) ────────────────────────────────────────
 var cam:        Camera3D
 var model_root: Node3D
 var psx_shader: Shader
+var crt_shader: Shader
 
 # ─── App state ───────────────────────────────────────────────────────────────
 var selected_path: String = ""
@@ -31,7 +34,6 @@ var orbit_dist:   float   = 3.0
 var orbit_center: Vector3 = Vector3.ZERO
 var is_dragging:  bool    = false
 
-# AABB accumulator (class-level so recursive func can mutate it)
 var _aabb_acc:   AABB = AABB()
 var _aabb_empty: bool = true
 
@@ -39,11 +41,11 @@ var _aabb_empty: bool = true
 # ─── Lifecycle ───────────────────────────────────────────────────────────────
 
 func _ready() -> void:
-	# repo root is one directory above the godot_app/ project root
 	repo_root = ProjectSettings.globalize_path("res://").rstrip("/\\").get_base_dir()
 
 	_build_3d_scene()
-	_load_psx_shader()
+	_load_shaders()
+	_setup_crt()
 
 	upload_btn.pressed.connect(_on_upload_pressed)
 	process_btn.pressed.connect(_on_process_pressed)
@@ -56,29 +58,25 @@ func _ready() -> void:
 
 
 func _build_3d_scene() -> void:
-	# Ensure the SubViewport has its own isolated 3D world
-	viewport3d.own_world_3d = true
-
+	# Camera — must be first so it becomes current in the SubViewport
 	cam = Camera3D.new()
 	cam.current = true
+	cam.fov = 45.0
+	cam.near = 0.05
 	viewport3d.add_child(cam)
 
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-45.0, 45.0, 0.0)
-	sun.light_energy = 1.2
+	sun.light_energy = 2.0
+	sun.light_color = Color(0.81, 0.81, 0.81)
 	viewport3d.add_child(sun)
-
-	var fill := DirectionalLight3D.new()
-	fill.rotation_degrees = Vector3(-20.0, -135.0, 0.0)
-	fill.light_energy = 0.4
-	viewport3d.add_child(fill)
 
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.10, 0.10, 0.13)
+	env.background_color = Color(0.118, 0.118, 0.118)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.3, 0.3, 0.35)
-	env.ambient_light_energy = 1.0
+	env.ambient_light_color = Color(1, 1, 1)
+	env.ambient_light_energy = 0.2
 	var we := WorldEnvironment.new()
 	we.environment = env
 	viewport3d.add_child(we)
@@ -89,12 +87,32 @@ func _build_3d_scene() -> void:
 	_update_camera()
 
 
-func _load_psx_shader() -> void:
+func _load_shaders() -> void:
 	var p := "res://shaders/psx_shader.gdshader"
 	if ResourceLoader.exists(p):
 		psx_shader = load(p)
 	else:
 		push_warning("[lofi-scan] PSX shader not found at %s" % p)
+
+	var c := "res://shaders/magnification.gdshader"
+	if ResourceLoader.exists(c):
+		crt_shader = load(c)
+
+
+func _setup_crt() -> void:
+	if crt_shader == null:
+		return
+	var mat := ShaderMaterial.new()
+	mat.shader = crt_shader
+	# match working project defaults
+	mat.set_shader_parameter("grain_intensity",       0.0)
+	mat.set_shader_parameter("chromatic_aberration",  0.001)
+	mat.set_shader_parameter("warble_amount",         0.001)
+	mat.set_shader_parameter("warble_speed",          1.0)
+	mat.set_shader_parameter("scanline_intensity",    0.0)
+	mat.set_shader_parameter("vignette_darkness",     0.0)
+	mat.set_shader_parameter("crt_vignette_power",    0.0)
+	crt_rect.material = mat
 
 
 # ─── Auto-load ───────────────────────────────────────────────────────────────
@@ -111,7 +129,6 @@ func _try_autoload_latest_glb() -> void:
 	while entry != "":
 		if dir.current_is_dir() and not entry.begins_with("_"):
 			var sub_path := cache.path_join(entry)
-			# prefer final_* subdirs from texture sweep
 			var sub_dir := DirAccess.open(sub_path)
 			if sub_dir:
 				sub_dir.list_dir_begin()
@@ -123,7 +140,6 @@ func _try_autoload_latest_glb() -> void:
 							newest_glb = glb
 					sub = sub_dir.get_next()
 				sub_dir.list_dir_end()
-			# also check directly
 			var direct := sub_path.path_join("mesh_lo.glb")
 			if FileAccess.file_exists(direct):
 				newest_glb = direct
@@ -167,64 +183,49 @@ func _run_pipeline(mesh_path: String) -> void:
 	var cache := repo_root.path_join("cache")
 	DirAccess.make_dir_recursive_absolute(cache)
 
-	# ── Geometry search ──
 	var search_out := cache.path_join(stem + "_search")
 	var search_cfg := {
-		"input_mesh":        mesh_path,
-		"tier":              TIER,
-		"output_dir":        search_out,
-		"search_lo":         50,
-		"search_hi":         5000,
-		"max_iter":          12,
-		"render_resolution": 256,
-		"bake_resolution":   1024,
-		"merge_distance":    0.0,
-		"blender_bin":       BLENDER_BIN,
-		"camera_distance":   2.5,
+		"input_mesh": mesh_path, "tier": TIER,
+		"output_dir": search_out,
+		"search_lo": 50, "search_hi": 5000, "max_iter": 12,
+		"render_resolution": 256, "bake_resolution": 1024,
+		"merge_distance": 0.0, "blender_bin": BLENDER_BIN,
+		"camera_distance": 2.5,
 	}
-	var search_cfg_path := cache.path_join("_godot_search.json")
-	_write_json(search_cfg_path, search_cfg)
+	_write_json(cache.path_join("_godot_search.json"), search_cfg)
 
 	var out := []
 	var code := OS.execute("python3",
-		[repo_root.path_join("blender_scripts/search.py"), search_cfg_path],
-		out, true)
-
+		[repo_root.path_join("blender_scripts/search.py"),
+		 cache.path_join("_godot_search.json")], out, true)
 	if code != 0:
 		_finish.call_deferred(false,
-			"[color=red]Geometry search failed (exit %d). Check terminal.[/color]" % code, "")
+			"[color=red]Search failed (exit %d).[/color]" % code, "")
 		return
 
 	var geo_log := _read_json(search_out.path_join("search_log.json"))
 	if geo_log.is_empty():
-		_finish.call_deferred(false, "[color=red]search_log.json not found.[/color]", "")
+		_finish.call_deferred(false, "[color=red]search_log.json missing.[/color]", "")
 		return
 	var best_tris := int(geo_log.get("best_tris", 500))
 
 	_set_status.call_deferred(
-		"[color=cyan]Geometry: %d tris. Running texture sweep…[/color]" % best_tris)
+		"[color=cyan]%d tris found — sweeping textures…[/color]" % best_tris)
 
-	# ── Texture sweep ──
 	var tex_out := cache.path_join(stem + "_tex")
 	var tex_cfg := {
-		"input_mesh":        mesh_path,
-		"fixed_tri_count":   best_tris,
-		"tier":              TIER,
-		"output_dir":        tex_out,
-		"resolutions":       [16, 32, 64, 128, 256],
-		"render_resolution": 256,
-		"merge_distance":    0.0,
-		"blender_bin":       BLENDER_BIN,
-		"camera_distance":   2.5,
+		"input_mesh": mesh_path, "fixed_tri_count": best_tris,
+		"tier": TIER, "output_dir": tex_out,
+		"resolutions": [16, 32, 64, 128, 256],
+		"render_resolution": 256, "merge_distance": 0.0,
+		"blender_bin": BLENDER_BIN, "camera_distance": 2.5,
 	}
-	var tex_cfg_path := cache.path_join("_godot_tex.json")
-	_write_json(tex_cfg_path, tex_cfg)
+	_write_json(cache.path_join("_godot_tex.json"), tex_cfg)
 
 	out.clear()
 	code = OS.execute("python3",
-		[repo_root.path_join("blender_scripts/texture_sweep.py"), tex_cfg_path],
-		out, true)
-
+		[repo_root.path_join("blender_scripts/texture_sweep.py"),
+		 cache.path_join("_godot_tex.json")], out, true)
 	if code != 0:
 		_finish.call_deferred(false,
 			"[color=red]Texture sweep failed (exit %d).[/color]" % code, "")
@@ -232,16 +233,13 @@ func _run_pipeline(mesh_path: String) -> void:
 
 	var tex_log := _read_json(tex_out.path_join("texture_sweep_log.json"))
 	if tex_log.is_empty():
-		_finish.call_deferred(false, "[color=red]texture_sweep_log.json not found.[/color]", "")
+		_finish.call_deferred(false, "[color=red]texture_sweep_log.json missing.[/color]", "")
 		return
 
-	var final_dir: String = tex_log.get("output_dir", "")
-	var glb := final_dir.path_join("mesh_lo.glb")
+	var glb: String = (tex_log.get("output_dir", "") as String).path_join("mesh_lo.glb")
 	var best_res := int(tex_log.get("best_resolution", 0))
-
 	_finish.call_deferred(true,
-		"[color=green]Done!  %d tris  ·  %dpx tex[/color]" % [best_tris, best_res],
-		glb)
+		"[color=green]Done!  %d tris  ·  %dpx tex[/color]" % [best_tris, best_res], glb)
 
 
 func _finish(ok: bool, msg: String, glb_path: String) -> void:
@@ -263,7 +261,7 @@ func _load_glb(path: String) -> void:
 	var doc := GLTFDocument.new()
 	var state := GLTFState.new()
 	if doc.append_from_file(path, state) != OK:
-		_set_status("[color=red]Failed to load GLB: %s[/color]" % path.get_file())
+		_set_status("[color=red]Failed to load: %s[/color]" % path.get_file())
 		return
 
 	var scene := doc.generate_scene(state)
@@ -295,10 +293,9 @@ func _apply_psx(node: Node) -> void:
 
 
 func _set_all_shader_param(param: String, value: Variant) -> void:
-	_patch_shader_params(model_root, param, value)
+	_patch_params(model_root, param, value)
 
-
-func _patch_shader_params(node: Node, param: String, value: Variant) -> void:
+func _patch_params(node: Node, param: String, value: Variant) -> void:
 	if node is MeshInstance3D:
 		var mi := node as MeshInstance3D
 		for i in mi.mesh.get_surface_count():
@@ -306,7 +303,7 @@ func _patch_shader_params(node: Node, param: String, value: Variant) -> void:
 			if mat is ShaderMaterial:
 				(mat as ShaderMaterial).set_shader_parameter(param, value)
 	for c in node.get_children():
-		_patch_shader_params(c, param, value)
+		_patch_params(c, param, value)
 
 
 # ─── Camera framing ──────────────────────────────────────────────────────────
@@ -327,7 +324,7 @@ func _accumulate_aabb(node: Node) -> void:
 		var mi := node as MeshInstance3D
 		var world := mi.global_transform * mi.get_aabb()
 		if _aabb_empty:
-			_aabb_acc = world
+			_aabb_acc  = world
 			_aabb_empty = false
 		else:
 			_aabb_acc = _aabb_acc.merge(world)
@@ -348,15 +345,21 @@ func _update_camera() -> void:
 	cam.look_at(orbit_center, Vector3.UP)
 
 
-# ─── Input (orbit camera on the 3D pane) ─────────────────────────────────────
+# ─── Input ───────────────────────────────────────────────────────────────────
 
 func _input(event: InputEvent) -> void:
-	var vp_rect := ($SubViewportContainer as Control).get_global_rect()
+	# Exclude clicks on the side panel
+	if event is InputEventMouseButton or event is InputEventMouseMotion:
+		var mouse_pos: Vector2
+		if event is InputEventMouseButton:
+			mouse_pos = (event as InputEventMouseButton).global_position
+		else:
+			mouse_pos = (event as InputEventMouseMotion).global_position
+		if side_panel.get_global_rect().has_point(mouse_pos):
+			return
 
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
-		if not vp_rect.has_point(mb.global_position):
-			return
 		if mb.button_index == MOUSE_BUTTON_LEFT:
 			is_dragging = mb.pressed
 		elif mb.button_index == MOUSE_BUTTON_WHEEL_UP and mb.pressed:
