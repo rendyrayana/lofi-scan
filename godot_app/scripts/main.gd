@@ -25,8 +25,11 @@ extends Node3D
 @onready var turntable_btn:  CheckButton      = $CanvasLayer/SidePanel/VBox/TurntableBtn
 @onready var speed_slider:   HSlider          = $CanvasLayer/SidePanel/VBox/SpeedRow/SpeedSlider
 @onready var batch_btn:      Button           = $CanvasLayer/SidePanel/VBox/BatchBtn
+@onready var record_btn:     Button           = $CanvasLayer/SidePanel/VBox/RecordRow/RecordBtn
+@onready var fmt_option:     OptionButton     = $CanvasLayer/SidePanel/VBox/RecordRow/FmtOption
 @onready var file_dialog:    FileDialog       = $CanvasLayer/FileDialog
 @onready var export_dialog:  FileDialog       = $CanvasLayer/ExportDialog
+@onready var video_dialog:   FileDialog       = $CanvasLayer/VideoDialog
 @onready var batch_dialog:   FileDialog       = $CanvasLayer/BatchDialog
 
 # ─── 3D scene nodes (built in _ready) ────────────────────────────────────────
@@ -45,12 +48,21 @@ var pipeline_thread:  Thread
 var batch_thread:     Thread
 var batch_results:    Array = []
 
+# Recording
+const RECORD_FRAMES    := 72       # frames captured (72 × 5° = 360°)
+const RECORD_FPS       := 24
+const FFMPEG_PATHS     := ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"]
+var recording:         bool   = false
+var record_frame_idx:  int    = 0
+var record_dir:        String = ""
+var record_format:     String = "mp4"
+
 const PYTHON_BIN  := "/usr/bin/python3"
 const BLENDER_BIN := "/Applications/Blender.app/Contents/MacOS/blender"
 
 # Tier 1=draft 2=fast 3=quality 4=max  (index matches OptionButton selected)
-const TIER_SSIM  := [0.70, 0.85, 0.92, 0.97]
-const TIER_RES   := [[64, 128], [64, 128, 256], [128, 256, 512], [256, 512, 1024]]
+const TIER_SSIM  := [0.75, 0.88, 0.93, 0.97]
+const TIER_RES   := [[128, 256], [128, 256, 512], [256, 512, 1024], [512, 1024]]
 
 # CRT "on" values (zeroing each param disables that effect)
 const CRT_GRAIN       := 0.1
@@ -87,6 +99,8 @@ func _ready() -> void:
 	file_dialog.file_selected.connect(_on_file_selected)
 	export_dialog.file_selected.connect(_on_export_path_selected)
 	batch_dialog.dir_selected.connect(_on_batch_folder_selected)
+	record_btn.pressed.connect(_on_record_pressed)
+	video_dialog.file_selected.connect(_on_video_path_selected)
 	pixelate_btn.toggled.connect(_on_pixelate_toggled)
 	snap_btn.toggled.connect(func(v): _set_all_shader_param("snap_vertices", v))
 	affine_btn.toggled.connect(func(v): _set_all_shader_param("use_affine_uv", v))
@@ -245,7 +259,7 @@ func _run_pipeline(mesh_path: String) -> void:
 	var search_cfg := {
 		"input_mesh": mesh_path, "tier": tier_num,
 		"output_dir": search_out,
-		"search_lo": 50, "search_hi": 5000, "max_iter": 12,
+		"search_lo": 300, "search_hi": 5000, "max_iter": 12,
 		"render_resolution": 512, "bake_resolution": 1024,
 		"merge_distance": 0.0, "blender_bin": BLENDER_BIN,
 		"camera_distance": 2.5,
@@ -399,7 +413,7 @@ func _run_batch(folder: String) -> void:
 		var search_cfg := {
 			"input_mesh": mesh_path, "tier": tier_num,
 			"output_dir": search_out,
-			"search_lo": 50, "search_hi": 5000, "max_iter": 12,
+			"search_lo": 300, "search_hi": 5000, "max_iter": 12,
 			"render_resolution": 512, "bake_resolution": 1024,
 			"merge_distance": 0.0, "blender_bin": BLENDER_BIN,
 			"camera_distance": 2.5,
@@ -590,14 +604,90 @@ func _update_camera() -> void:
 # ─── Turntable & BG ─────────────────────────────────────────────────────────
 
 func _process(delta: float) -> void:
-	if turntable_btn.button_pressed and not _aabb_empty:
+	if turntable_btn.button_pressed and not _aabb_empty and not recording:
 		orbit_yaw += speed_slider.value * delta
 		_update_camera()
+
+	if recording:
+		orbit_yaw += 360.0 / RECORD_FRAMES
+		_update_camera()
+		# Defer capture so the viewport has rendered this frame
+		call_deferred("_capture_record_frame")
 
 
 func _on_bg_color_changed(color: Color) -> void:
 	if world_env and world_env.environment:
 		world_env.environment.background_color = color
+
+
+func _on_record_pressed() -> void:
+	if recording:
+		return
+	var ff := _find_ffmpeg()
+	if ff.is_empty():
+		_set_status("[color=red]ffmpeg not found.\nInstall: brew install ffmpeg[/color]")
+		return
+	record_format = "gif" if fmt_option.selected == 1 else "mp4"
+	var stem := selected_path.get_file().get_basename() if selected_path != "" else "lofi"
+	video_dialog.current_file = stem + "_360." + record_format
+	video_dialog.popup_centered()
+
+
+func _on_video_path_selected(dest: String) -> void:
+	record_dir = OS.get_temp_dir().path_join("lofi_rec_%d" % Time.get_ticks_msec())
+	DirAccess.make_dir_recursive_absolute(record_dir)
+	record_frame_idx = 0
+	recording = true
+	record_btn.disabled = true
+	_set_status("[color=cyan]Recording… 0/%d[/color]" % RECORD_FRAMES)
+	# Store dest for use after capture finishes
+	record_btn.set_meta("dest", dest)
+
+
+func _capture_record_frame() -> void:
+	if not recording:
+		return
+	var img := viewport3d.get_texture().get_image()
+	img.save_png(record_dir.path_join("frame_%04d.png" % record_frame_idx))
+	record_frame_idx += 1
+	_set_status("[color=cyan]Recording… %d/%d[/color]" % [record_frame_idx, RECORD_FRAMES])
+	if record_frame_idx >= RECORD_FRAMES:
+		recording = false
+		var dest: String = record_btn.get_meta("dest")
+		_encode_video(dest)
+
+
+func _encode_video(dest: String) -> void:
+	var ff := _find_ffmpeg()
+	var out: Array = []
+	var args: Array
+	if record_format == "gif":
+		# palette-based gif for quality
+		var palette := record_dir.path_join("palette.png")
+		OS.execute(ff, ["-y", "-framerate", str(RECORD_FPS),
+			"-i", record_dir.path_join("frame_%04d.png"),
+			"-vf", "palettegen", palette], out, true)
+		args = ["-y", "-framerate", str(RECORD_FPS),
+			"-i", record_dir.path_join("frame_%04d.png"),
+			"-i", palette, "-lavfi", "paletteuse", dest]
+	else:
+		args = ["-y", "-framerate", str(RECORD_FPS),
+			"-i", record_dir.path_join("frame_%04d.png"),
+			"-c:v", "libx264", "-pix_fmt", "yuv420p",
+			"-crf", "18", dest]
+	var code := OS.execute(ff, args, out, true)
+	record_btn.disabled = false
+	if code == 0:
+		_set_status("[color=green]Video saved: %s[/color]" % dest.get_file())
+	else:
+		_set_status("[color=red]ffmpeg encode failed (exit %d)[/color]" % code)
+
+
+func _find_ffmpeg() -> String:
+	for p: String in FFMPEG_PATHS:
+		if FileAccess.file_exists(p):
+			return p
+	return ""
 
 
 func _on_pixelate_toggled(on: bool) -> void:

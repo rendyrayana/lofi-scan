@@ -1,20 +1,20 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://dnv0e8643iksk"]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1"]
+[ext_resource type="Script" uid="uid://c40jfda6h5br8" path="res://scripts/main.gd" id="1"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_main"]
 viewport_path = NodePath("SubViewport")
 
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node3D" unique_id=1088546809]
 script = ExtResource("1")
 
-[node name="SubViewport" type="SubViewport" parent="."]
+[node name="SubViewport" type="SubViewport" parent="." unique_id=426402192]
 size = Vector2i(320, 240)
 render_target_update_mode = 4
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1710370585]
 
-[node name="Magnification" type="TextureRect" parent="CanvasLayer"]
+[node name="Magnification" type="TextureRect" parent="CanvasLayer" unique_id=1093068737]
 texture_filter = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -24,21 +24,22 @@ grow_vertical = 2
 texture = SubResource("ViewportTexture_main")
 stretch_mode = 5
 
-[node name="CRT" type="ColorRect" parent="CanvasLayer"]
+[node name="CRT" type="ColorRect" parent="CanvasLayer" unique_id=226864528]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="SidePanel" type="Panel" parent="CanvasLayer"]
+[node name="SidePanel" type="Panel" parent="CanvasLayer" unique_id=1027039865]
+anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -280.0
 
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/SidePanel"]
-anchors_preset = 15
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/SidePanel" unique_id=2064071764]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 10.0
@@ -47,167 +48,221 @@ offset_right = -10.0
 offset_bottom = -10.0
 theme_override_constants/separation = 6
 
-[node name="Title" type="Label" parent="CanvasLayer/SidePanel/VBox"]
-text = "lofi-scan"
+[node name="Title" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=1825931480]
+layout_mode = 2
 theme_override_font_sizes/font_size = 22
+text = "lofi-scan"
 
-[node name="HSep0" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
+[node name="HSep0" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=605933326]
+layout_mode = 2
 
-[node name="UploadBtn" type="Button" parent="CanvasLayer/SidePanel/VBox"]
+[node name="UploadBtn" type="Button" parent="CanvasLayer/SidePanel/VBox" unique_id=1660482906]
+layout_mode = 2
 text = "Upload Mesh…"
 
-[node name="BatchBtn" type="Button" parent="CanvasLayer/SidePanel/VBox"]
+[node name="BatchBtn" type="Button" parent="CanvasLayer/SidePanel/VBox" unique_id=493218751]
+layout_mode = 2
 text = "Batch Folder…"
 
-[node name="InputLabel" type="Label" parent="CanvasLayer/SidePanel/VBox"]
+[node name="InputLabel" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=1942591766]
 custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "No file selected"
 autowrap_mode = 2
-theme_override_font_sizes/font_size = 11
 
-[node name="HSep1" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
+[node name="HSep1" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=349816900]
+layout_mode = 2
 
-[node name="TierRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+[node name="TierRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox" unique_id=1942696377]
+layout_mode = 2
 
-[node name="TierLabel" type="Label" parent="CanvasLayer/SidePanel/VBox/TierRow"]
-text = "Quality "
+[node name="TierLabel" type="Label" parent="CanvasLayer/SidePanel/VBox/TierRow" unique_id=727280592]
+layout_mode = 2
 theme_override_font_sizes/font_size = 12
+text = "Quality "
 
-[node name="TierOption" type="OptionButton" parent="CanvasLayer/SidePanel/VBox/TierRow"]
+[node name="TierOption" type="OptionButton" parent="CanvasLayer/SidePanel/VBox/TierRow" unique_id=182484052]
+layout_mode = 2
 size_flags_horizontal = 3
+selected = 1
 item_count = 4
 popup/item_0/text = "Tier 1  (draft)"
 popup/item_0/id = 0
 popup/item_1/text = "Tier 2  (fast)"
 popup/item_1/id = 1
-popup/item_1/checked = true
 popup/item_2/text = "Tier 3  (quality)"
 popup/item_2/id = 2
 popup/item_3/text = "Tier 4  (max)"
 popup/item_3/id = 3
-selected = 1
 
-[node name="ProcessBtn" type="Button" parent="CanvasLayer/SidePanel/VBox"]
-text = "Process"
+[node name="ProcessBtn" type="Button" parent="CanvasLayer/SidePanel/VBox" unique_id=956320864]
+layout_mode = 2
 disabled = true
+text = "Process"
 
-[node name="HSep2" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
+[node name="HSep2" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=2031174900]
+layout_mode = 2
 
-[node name="StatusTitle" type="Label" parent="CanvasLayer/SidePanel/VBox"]
+[node name="StatusTitle" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=2135578141]
+layout_mode = 2
 text = "Status"
 
-[node name="StatusLabel" type="RichTextLabel" parent="CanvasLayer/SidePanel/VBox"]
+[node name="StatusLabel" type="RichTextLabel" parent="CanvasLayer/SidePanel/VBox" unique_id=1765218049]
 custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
-fit_content = false
-scroll_active = true
 text = "[color=gray]Ready.[/color]"
 
-[node name="ResultLabel" type="Label" parent="CanvasLayer/SidePanel/VBox"]
-custom_minimum_size = Vector2(4, 0)
-autowrap_mode = 2
-theme_override_font_sizes/font_size = 11
-text = ""
+[node name="ResultLabel" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=263937983]
 visible = false
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+autowrap_mode = 2
 
-[node name="ExportBtn" type="Button" parent="CanvasLayer/SidePanel/VBox"]
-text = "Export GLB…"
+[node name="ExportBtn" type="Button" parent="CanvasLayer/SidePanel/VBox" unique_id=946512519]
+layout_mode = 2
 disabled = true
+text = "Export GLB…"
 
-[node name="HSep3" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
+[node name="HSep3" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=1840127642]
+layout_mode = 2
 
-[node name="PSXTitle" type="Label" parent="CanvasLayer/SidePanel/VBox"]
+[node name="PSXTitle" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=163297643]
+layout_mode = 2
 text = "PSX Settings"
 
-[node name="PixelateBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+[node name="PixelateBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=1696665933]
+layout_mode = 2
 button_pressed = true
 text = "Pixelate"
 
-[node name="SnapBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+[node name="SnapBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=1326049333]
+layout_mode = 2
 button_pressed = true
 text = "Snap Vertices"
 
-[node name="AffineBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+[node name="AffineBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=51119238]
+layout_mode = 2
 button_pressed = true
 text = "Affine UV"
 
-[node name="DitherBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+[node name="DitherBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=910952195]
+layout_mode = 2
 button_pressed = true
 text = "Dither"
 
-[node name="HSep5" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
+[node name="HSep5" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=1071784427]
+layout_mode = 2
 
-[node name="CRTTitle" type="Label" parent="CanvasLayer/SidePanel/VBox"]
+[node name="CRTTitle" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=1513251541]
+layout_mode = 2
 text = "CRT Effects"
 
-[node name="GrainBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+[node name="GrainBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=772967850]
+layout_mode = 2
 text = "Grain"
 
-[node name="ChromaBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+[node name="ChromaBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=1122074626]
+layout_mode = 2
 text = "Chromatic Aberration"
 
-[node name="ScanlinesBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+[node name="ScanlinesBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=899346098]
+layout_mode = 2
 text = "Scanlines"
 
-[node name="VignetteBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+[node name="VignetteBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=247623514]
+layout_mode = 2
 text = "Vignette"
 
-[node name="WarbleBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+[node name="WarbleBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=1537485888]
+layout_mode = 2
 text = "Warble"
 
-[node name="HSep4" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
+[node name="HSep4" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=1078277388]
+layout_mode = 2
 
-[node name="SceneTitle" type="Label" parent="CanvasLayer/SidePanel/VBox"]
+[node name="SceneTitle" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=1437443408]
+layout_mode = 2
 text = "Scene"
 
-[node name="BGRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+[node name="BGRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox" unique_id=685836713]
+layout_mode = 2
 
-[node name="BGLabel" type="Label" parent="CanvasLayer/SidePanel/VBox/BGRow"]
-text = "Background "
+[node name="BGLabel" type="Label" parent="CanvasLayer/SidePanel/VBox/BGRow" unique_id=920556222]
+layout_mode = 2
 theme_override_font_sizes/font_size = 12
+text = "Background "
 
-[node name="BGColor" type="ColorPickerButton" parent="CanvasLayer/SidePanel/VBox/BGRow"]
+[node name="BGColor" type="ColorPickerButton" parent="CanvasLayer/SidePanel/VBox/BGRow" unique_id=249659474]
+layout_mode = 2
 size_flags_horizontal = 3
 color = Color(0.118, 0.118, 0.118, 1)
 
-[node name="TurntableBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+[node name="TurntableBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=1034902378]
+layout_mode = 2
 text = "Turntable"
 
-[node name="SpeedRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+[node name="SpeedRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox" unique_id=633051784]
+layout_mode = 2
 
-[node name="SpeedLabel" type="Label" parent="CanvasLayer/SidePanel/VBox/SpeedRow"]
-text = "Speed "
+[node name="SpeedLabel" type="Label" parent="CanvasLayer/SidePanel/VBox/SpeedRow" unique_id=877685874]
+layout_mode = 2
 theme_override_font_sizes/font_size = 12
+text = "Speed "
 
-[node name="SpeedSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/SpeedRow"]
+[node name="SpeedSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/SpeedRow" unique_id=1316220142]
+layout_mode = 2
 size_flags_horizontal = 3
 min_value = 5.0
 max_value = 120.0
 value = 30.0
 
-[node name="Spacer" type="Control" parent="CanvasLayer/SidePanel/VBox"]
+[node name="RecordRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+layout_mode = 2
+
+[node name="RecordBtn" type="Button" parent="CanvasLayer/SidePanel/VBox/RecordRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Record 360°"
+
+[node name="FmtOption" type="OptionButton" parent="CanvasLayer/SidePanel/VBox/RecordRow"]
+layout_mode = 2
+selected = 0
+item_count = 2
+popup/item_0/text = "mp4"
+popup/item_0/id = 0
+popup/item_1/text = "gif"
+popup/item_1/id = 1
+
+[node name="Spacer" type="Control" parent="CanvasLayer/SidePanel/VBox" unique_id=1793002550]
+layout_mode = 2
 size_flags_vertical = 3
 
-[node name="FileDialog" type="FileDialog" parent="CanvasLayer"]
-visible = false
-title = "Open Scan Mesh"
+[node name="FileDialog" type="FileDialog" parent="CanvasLayer" unique_id=1012464718]
+title = "Open a File"
 size = Vector2i(900, 600)
-access = 2
 file_mode = 0
+access = 2
 filters = PackedStringArray("*.obj,*.glb,*.gltf,*.ply ; Mesh Files")
 
-[node name="ExportDialog" type="FileDialog" parent="CanvasLayer"]
-visible = false
+[node name="ExportDialog" type="FileDialog" parent="CanvasLayer" unique_id=1535242925]
 title = "Export GLB"
 size = Vector2i(900, 600)
 access = 2
-file_mode = 4
 filters = PackedStringArray("*.glb ; GLB Files")
 
-[node name="BatchDialog" type="FileDialog" parent="CanvasLayer"]
-visible = false
-title = "Select Folder to Batch Process"
+[node name="VideoDialog" type="FileDialog" parent="CanvasLayer"]
+title = "Save Video"
 size = Vector2i(900, 600)
 access = 2
+file_mode = 4
+filters = PackedStringArray("*.mp4,*.gif ; Video Files")
+
+[node name="BatchDialog" type="FileDialog" parent="CanvasLayer" unique_id=529857428]
+title = "Open a Directory"
+size = Vector2i(900, 600)
 file_mode = 2
+access = 2
