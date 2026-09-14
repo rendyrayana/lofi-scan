@@ -8,9 +8,16 @@ extends Node3D
 @onready var process_btn:  Button        = $CanvasLayer/SidePanel/VBox/ProcessBtn
 @onready var input_label:  Label         = $CanvasLayer/SidePanel/VBox/InputLabel
 @onready var status_label: RichTextLabel = $CanvasLayer/SidePanel/VBox/StatusLabel
+@onready var pixelate_btn: CheckButton   = $CanvasLayer/SidePanel/VBox/PixelateBtn
 @onready var snap_btn:     CheckButton   = $CanvasLayer/SidePanel/VBox/SnapBtn
 @onready var affine_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/AffineBtn
 @onready var dither_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/DitherBtn
+@onready var grain_btn:    CheckButton   = $CanvasLayer/SidePanel/VBox/GrainBtn
+@onready var chroma_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/ChromaBtn
+@onready var scanlines_btn:CheckButton   = $CanvasLayer/SidePanel/VBox/ScanlinesBtn
+@onready var vignette_btn: CheckButton   = $CanvasLayer/SidePanel/VBox/VignetteBtn
+@onready var warble_btn:   CheckButton   = $CanvasLayer/SidePanel/VBox/WarbleBtn
+@onready var magnification_rect: TextureRect = $CanvasLayer/Magnification
 @onready var tier_option:    OptionButton     = $CanvasLayer/SidePanel/VBox/TierRow/TierOption
 @onready var result_label:   Label            = $CanvasLayer/SidePanel/VBox/ResultLabel
 @onready var export_btn:     Button           = $CanvasLayer/SidePanel/VBox/ExportBtn
@@ -45,6 +52,14 @@ const BLENDER_BIN := "/Applications/Blender.app/Contents/MacOS/blender"
 const TIER_SSIM  := [0.70, 0.85, 0.92, 0.97]
 const TIER_RES   := [[64, 128], [64, 128, 256], [128, 256, 512], [256, 512, 1024]]
 
+# CRT "on" values (zeroing each param disables that effect)
+const CRT_GRAIN       := 0.1
+const CRT_CHROMA      := 0.005
+const CRT_SCANLINES   := 0.2
+const CRT_VIGNETTE    := 0.5
+const CRT_VIG_POWER   := 2.0
+const CRT_WARBLE      := 0.002
+
 # ─── Orbit camera ────────────────────────────────────────────────────────────
 var orbit_yaw:    float   = 30.0
 var orbit_pitch:  float   = 20.0
@@ -72,9 +87,15 @@ func _ready() -> void:
 	file_dialog.file_selected.connect(_on_file_selected)
 	export_dialog.file_selected.connect(_on_export_path_selected)
 	batch_dialog.dir_selected.connect(_on_batch_folder_selected)
+	pixelate_btn.toggled.connect(_on_pixelate_toggled)
 	snap_btn.toggled.connect(func(v): _set_all_shader_param("snap_vertices", v))
 	affine_btn.toggled.connect(func(v): _set_all_shader_param("use_affine_uv", v))
 	dither_btn.toggled.connect(func(v): _set_all_shader_param("use_dither", v))
+	grain_btn.toggled.connect(func(v): _set_crt("grain_intensity", CRT_GRAIN if v else 0.0))
+	chroma_btn.toggled.connect(func(v): _set_crt("chromatic_aberration", CRT_CHROMA if v else 0.0))
+	scanlines_btn.toggled.connect(func(v): _set_crt("scanline_intensity", CRT_SCANLINES if v else 0.0))
+	vignette_btn.toggled.connect(_on_vignette_toggled)
+	warble_btn.toggled.connect(func(v): _set_crt("warble_amount", CRT_WARBLE if v else 0.0))
 	bg_color_btn.color_changed.connect(_on_bg_color_changed)
 
 	_try_autoload_latest_glb()
@@ -127,15 +148,16 @@ func _setup_crt() -> void:
 		return
 	var mat := ShaderMaterial.new()
 	mat.shader = crt_shader
-	# match working project defaults
-	mat.set_shader_parameter("grain_intensity",       0.0)
-	mat.set_shader_parameter("chromatic_aberration",  0.001)
-	mat.set_shader_parameter("warble_amount",         0.001)
-	mat.set_shader_parameter("warble_speed",          1.0)
-	mat.set_shader_parameter("scanline_intensity",    0.0)
-	mat.set_shader_parameter("vignette_darkness",     0.0)
-	mat.set_shader_parameter("crt_vignette_power",    0.0)
+	# All effects start at zero; CheckButtons enable them individually
+	mat.set_shader_parameter("grain_intensity",      0.0)
+	mat.set_shader_parameter("chromatic_aberration", 0.0)
+	mat.set_shader_parameter("warble_amount",        0.0)
+	mat.set_shader_parameter("warble_speed",         5.0)
+	mat.set_shader_parameter("scanline_intensity",   0.0)
+	mat.set_shader_parameter("vignette_darkness",    0.0)
+	mat.set_shader_parameter("crt_vignette_power",   0.0)
 	crt_rect.material = mat
+	crt_rect.visible = false  # hidden until at least one effect is enabled
 
 
 # ─── Auto-load ───────────────────────────────────────────────────────────────
@@ -576,6 +598,34 @@ func _process(delta: float) -> void:
 func _on_bg_color_changed(color: Color) -> void:
 	if world_env and world_env.environment:
 		world_env.environment.background_color = color
+
+
+func _on_pixelate_toggled(on: bool) -> void:
+	if on:
+		viewport3d.size = Vector2i(320, 240)
+		magnification_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	else:
+		var win := DisplayServer.window_get_size()
+		viewport3d.size = Vector2i(win.x - 280, win.y)
+		magnification_rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+
+
+func _set_crt(param: String, value: float) -> void:
+	if crt_rect.material is ShaderMaterial:
+		(crt_rect.material as ShaderMaterial).set_shader_parameter(param, value)
+	_refresh_crt_visibility()
+
+
+func _on_vignette_toggled(on: bool) -> void:
+	_set_crt("vignette_darkness",   CRT_VIGNETTE  if on else 0.0)
+	_set_crt("crt_vignette_power",  CRT_VIG_POWER if on else 0.0)
+
+
+func _refresh_crt_visibility() -> void:
+	var any_on := grain_btn.button_pressed or chroma_btn.button_pressed \
+		or scanlines_btn.button_pressed or vignette_btn.button_pressed \
+		or warble_btn.button_pressed
+	crt_rect.visible = any_on
 
 
 # ─── Input ───────────────────────────────────────────────────────────────────

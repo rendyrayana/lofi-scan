@@ -120,6 +120,10 @@ disabled = true
 [node name="PSXTitle" type="Label" parent="CanvasLayer/SidePanel/VBox"]
 text = "PSX Settings"
 
+[node name="PixelateBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+button_pressed = true
+text = "Pixelate"
+
 [node name="SnapBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
 button_pressed = true
 text = "Snap Vertices"
@@ -131,6 +135,26 @@ text = "Affine UV"
 [node name="DitherBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
 button_pressed = true
 text = "Dither"
+
+[node name="HSep5" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
+
+[node name="CRTTitle" type="Label" parent="CanvasLayer/SidePanel/VBox"]
+text = "CRT Effects"
+
+[node name="GrainBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+text = "Grain"
+
+[node name="ChromaBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+text = "Chromatic Aberration"
+
+[node name="ScanlinesBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+text = "Scanlines"
+
+[node name="VignetteBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+text = "Vignette"
+
+[node name="WarbleBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+text = "Warble"
 
 [node name="HSep4" type="HSeparator" parent="CanvasLayer/SidePanel/VBox"]
 
