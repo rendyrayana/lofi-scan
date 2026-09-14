@@ -11,27 +11,26 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="HSplitContainer" type="HSplitContainer" parent="."]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="SubViewportContainer" type="SubViewportContainer" parent="HSplitContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 stretch = true
 
-[node name="Viewport3D" type="SubViewport" parent="HSplitContainer/SubViewportContainer"]
-handle_input_locally = false
+[node name="Viewport3D" type="SubViewport" parent="SubViewportContainer"]
 own_world_3d = true
-size = Vector2i(1024, 720)
+handle_input_locally = false
+size = Vector2i(1280, 720)
 
-[node name="SidePanel" type="Panel" parent="HSplitContainer"]
-layout_mode = 2
-custom_minimum_size = Vector2(280, 0)
+[node name="SidePanel" type="Panel" parent="."]
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -280.0
 
-[node name="VBox" type="VBoxContainer" parent="HSplitContainer/SidePanel"]
+[node name="VBox" type="VBoxContainer" parent="SidePanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -42,46 +41,46 @@ offset_right = -10.0
 offset_bottom = -10.0
 theme_override_constants/separation = 6
 
-[node name="Title" type="Label" parent="HSplitContainer/SidePanel/VBox"]
+[node name="Title" type="Label" parent="SidePanel/VBox"]
 layout_mode = 2
 text = "lofi-scan"
 theme_override_font_sizes/font_size = 22
 
-[node name="HSep0" type="HSeparator" parent="HSplitContainer/SidePanel/VBox"]
+[node name="HSep0" type="HSeparator" parent="SidePanel/VBox"]
 layout_mode = 2
 
-[node name="UploadBtn" type="Button" parent="HSplitContainer/SidePanel/VBox"]
+[node name="UploadBtn" type="Button" parent="SidePanel/VBox"]
 layout_mode = 2
 text = "Upload Mesh…"
 
-[node name="InputLabel" type="Label" parent="HSplitContainer/SidePanel/VBox"]
+[node name="InputLabel" type="Label" parent="SidePanel/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(4, 0)
 text = "No file selected"
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 11
 
-[node name="HSep1" type="HSeparator" parent="HSplitContainer/SidePanel/VBox"]
+[node name="HSep1" type="HSeparator" parent="SidePanel/VBox"]
 layout_mode = 2
 
-[node name="ProcessBtn" type="Button" parent="HSplitContainer/SidePanel/VBox"]
+[node name="ProcessBtn" type="Button" parent="SidePanel/VBox"]
 layout_mode = 2
 text = "Process"
 disabled = true
 
-[node name="TierLabel" type="Label" parent="HSplitContainer/SidePanel/VBox"]
+[node name="TierLabel" type="Label" parent="SidePanel/VBox"]
 layout_mode = 2
 text = "Tier 2  (SSIM ≥ 0.85)"
 theme_override_font_sizes/font_size = 11
 
-[node name="HSep2" type="HSeparator" parent="HSplitContainer/SidePanel/VBox"]
+[node name="HSep2" type="HSeparator" parent="SidePanel/VBox"]
 layout_mode = 2
 
-[node name="StatusTitle" type="Label" parent="HSplitContainer/SidePanel/VBox"]
+[node name="StatusTitle" type="Label" parent="SidePanel/VBox"]
 layout_mode = 2
 text = "Status"
 
-[node name="StatusLabel" type="RichTextLabel" parent="HSplitContainer/SidePanel/VBox"]
+[node name="StatusLabel" type="RichTextLabel" parent="SidePanel/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 80)
 size_flags_vertical = 3
@@ -90,29 +89,29 @@ fit_content = false
 scroll_active = true
 text = "[color=gray]Ready.[/color]"
 
-[node name="HSep3" type="HSeparator" parent="HSplitContainer/SidePanel/VBox"]
+[node name="HSep3" type="HSeparator" parent="SidePanel/VBox"]
 layout_mode = 2
 
-[node name="PSXTitle" type="Label" parent="HSplitContainer/SidePanel/VBox"]
+[node name="PSXTitle" type="Label" parent="SidePanel/VBox"]
 layout_mode = 2
 text = "PSX Settings"
 
-[node name="SnapBtn" type="CheckButton" parent="HSplitContainer/SidePanel/VBox"]
+[node name="SnapBtn" type="CheckButton" parent="SidePanel/VBox"]
 layout_mode = 2
 button_pressed = true
 text = "Snap Vertices"
 
-[node name="AffineBtn" type="CheckButton" parent="HSplitContainer/SidePanel/VBox"]
+[node name="AffineBtn" type="CheckButton" parent="SidePanel/VBox"]
 layout_mode = 2
 button_pressed = true
 text = "Affine UV"
 
-[node name="DitherBtn" type="CheckButton" parent="HSplitContainer/SidePanel/VBox"]
+[node name="DitherBtn" type="CheckButton" parent="SidePanel/VBox"]
 layout_mode = 2
 button_pressed = true
 text = "Dither"
 
-[node name="Spacer" type="Control" parent="HSplitContainer/SidePanel/VBox"]
+[node name="Spacer" type="Control" parent="SidePanel/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 

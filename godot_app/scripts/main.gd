@@ -1,14 +1,14 @@
 extends Control
 
 # ─── Node refs ───────────────────────────────────────────────────────────────
-@onready var viewport3d:   SubViewport   = $HSplitContainer/SubViewportContainer/Viewport3D
-@onready var upload_btn:   Button        = $HSplitContainer/SidePanel/VBox/UploadBtn
-@onready var process_btn:  Button        = $HSplitContainer/SidePanel/VBox/ProcessBtn
-@onready var input_label:  Label         = $HSplitContainer/SidePanel/VBox/InputLabel
-@onready var status_label: RichTextLabel = $HSplitContainer/SidePanel/VBox/StatusLabel
-@onready var snap_btn:     CheckButton   = $HSplitContainer/SidePanel/VBox/SnapBtn
-@onready var affine_btn:   CheckButton   = $HSplitContainer/SidePanel/VBox/AffineBtn
-@onready var dither_btn:   CheckButton   = $HSplitContainer/SidePanel/VBox/DitherBtn
+@onready var viewport3d:   SubViewport   = $SubViewportContainer/Viewport3D
+@onready var upload_btn:   Button        = $SidePanel/VBox/UploadBtn
+@onready var process_btn:  Button        = $SidePanel/VBox/ProcessBtn
+@onready var input_label:  Label         = $SidePanel/VBox/InputLabel
+@onready var status_label: RichTextLabel = $SidePanel/VBox/StatusLabel
+@onready var snap_btn:     CheckButton   = $SidePanel/VBox/SnapBtn
+@onready var affine_btn:   CheckButton   = $SidePanel/VBox/AffineBtn
+@onready var dither_btn:   CheckButton   = $SidePanel/VBox/DitherBtn
 @onready var file_dialog:  FileDialog    = $FileDialog
 
 # ─── 3D scene nodes (created in _ready) ──────────────────────────────────────
@@ -56,7 +56,11 @@ func _ready() -> void:
 
 
 func _build_3d_scene() -> void:
+	# Ensure the SubViewport has its own isolated 3D world
+	viewport3d.own_world_3d = true
+
 	cam = Camera3D.new()
+	cam.current = true
 	viewport3d.add_child(cam)
 
 	var sun := DirectionalLight3D.new()
@@ -71,9 +75,9 @@ func _build_3d_scene() -> void:
 
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.12, 0.12, 0.15)
+	env.background_color = Color(0.10, 0.10, 0.13)
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.2, 0.2, 0.25)
+	env.ambient_light_color = Color(0.3, 0.3, 0.35)
 	env.ambient_light_energy = 1.0
 	var we := WorldEnvironment.new()
 	we.environment = env
@@ -106,23 +110,23 @@ func _try_autoload_latest_glb() -> void:
 	var entry := dir.get_next()
 	while entry != "":
 		if dir.current_is_dir() and not entry.begins_with("_"):
-			# prefer final_*tris* directories from texture_sweep output
-			var candidate := cache.path_join(entry)
-			var inner_dir := DirAccess.open(candidate)
-			if inner_dir:
-				inner_dir.list_dir_begin()
-				var sub := inner_dir.get_next()
+			var sub_path := cache.path_join(entry)
+			# prefer final_* subdirs from texture sweep
+			var sub_dir := DirAccess.open(sub_path)
+			if sub_dir:
+				sub_dir.list_dir_begin()
+				var sub := sub_dir.get_next()
 				while sub != "":
-					if inner_dir.current_is_dir() and sub.begins_with("final_"):
-						var glb := candidate.path_join(sub).path_join("mesh_lo.glb")
+					if sub_dir.current_is_dir() and sub.begins_with("final_"):
+						var glb := sub_path.path_join(sub).path_join("mesh_lo.glb")
 						if FileAccess.file_exists(glb):
 							newest_glb = glb
-					sub = inner_dir.get_next()
-				inner_dir.list_dir_end()
+					sub = sub_dir.get_next()
+				sub_dir.list_dir_end()
 			# also check directly
-			var direct_glb := candidate.path_join("mesh_lo.glb")
-			if FileAccess.file_exists(direct_glb):
-				newest_glb = direct_glb
+			var direct := sub_path.path_join("mesh_lo.glb")
+			if FileAccess.file_exists(direct):
+				newest_glb = direct
 		entry = dir.get_next()
 	dir.list_dir_end()
 
@@ -142,8 +146,7 @@ func _on_file_selected(path: String) -> void:
 	input_label.text = path.get_file()
 	process_btn.disabled = false
 	_set_status("[color=yellow]Mesh selected — press Process to run pipeline.[/color]")
-	var ext := path.get_extension().to_lower()
-	if ext in ["glb", "gltf"]:
+	if path.get_extension().to_lower() in ["glb", "gltf"]:
 		_load_glb(path)
 
 
@@ -199,7 +202,7 @@ func _run_pipeline(mesh_path: String) -> void:
 	var best_tris := int(geo_log.get("best_tris", 500))
 
 	_set_status.call_deferred(
-		"[color=cyan]Geometry: %d tris found. Running texture sweep…[/color]" % best_tris)
+		"[color=cyan]Geometry: %d tris. Running texture sweep…[/color]" % best_tris)
 
 	# ── Texture sweep ──
 	var tex_out := cache.path_join(stem + "_tex")
@@ -348,7 +351,7 @@ func _update_camera() -> void:
 # ─── Input (orbit camera on the 3D pane) ─────────────────────────────────────
 
 func _input(event: InputEvent) -> void:
-	var vp_rect := ($HSplitContainer/SubViewportContainer as Control).get_global_rect()
+	var vp_rect := ($SubViewportContainer as Control).get_global_rect()
 
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
