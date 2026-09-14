@@ -1,0 +1,14 @@
+{
+  "input_mesh":        "obj/kirby.obj",
+  "input_texture":     "obj/kirby.jpg",
+  "tier":              2,
+  "output_dir":        "cache/kirby_search/",
+  "search_lo":         50,
+  "search_hi":         5000,
+  "max_iter":          12,
+  "render_resolution": 256,
+  "bake_resolution":   1024,
+  "merge_distance":    0,
+  "blender_bin":       "/Applications/Blender.app/Contents/MacOS/blender",
+  "camera_distance":   2.5
+}
