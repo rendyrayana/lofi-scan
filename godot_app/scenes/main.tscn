@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_main"]
-viewport_path = NodePath("../SubViewport")
+viewport_path = NodePath("SubViewport")
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1")
