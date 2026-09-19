@@ -1,66 +1,73 @@
 # lofi-scan
 
-Convert 3D scans into PSX-style low-poly assets, automatically.
+PSX-style 3D scan converter — prototype / research tool.
 
-<!-- screenshot or GIF goes here -->
+<!-- banner or screenshot goes here -->
 
-## What it does
+<!-- Live Preview · Project Page · Rendy Rayana -->
 
-Takes a hi-res 3D-scanned object and converts it into a PS1-style low-poly, low-res asset without ZBrush or Maya. Instead of fixed presets, it runs a per-object search to find the minimum polygon count and texture resolution that still keeps the object recognizable. Results are logged for use as a research pipeline or production tool.
+## Overview
 
-## How it works
+lofi-scan takes hi-res 3D-scanned objects and converts them into PS1-style low-poly, low-res assets without ZBrush or Maya. Instead of fixed presets, it runs a per-object adaptive search to find the minimum polygon count and texture resolution that still keeps the object recognizable. Built as a research tool and interactive viewer, currently in active development.
 
-```
-Godot (UI + shader preview + export)
-   calls Blender headless
-Blender (decimate + bake hi-to-low mesh)
-   calls Python
-Python (texture downsample/upsample)
-   back to Godot
-Godot (apply PSX shader, live preview, export)
-   captures frames
-ffmpeg (encode mp4/gif)
-```
+## Screenshots
+
+<!-- | docs/screenshot-1.png | docs/screenshot-2.png |
+|---|---|
+| Caption | Caption | -->
+
+## Features
+
+- **Adaptive decimation** — finds the minimum poly count and texture resolution per object via binary search, rather than fixed presets
+- **PSX shader preview** — real-time vertex snapping, affine UV mapping, ordered dithering, and CRT effects in the viewport
+- **Texture baking** — hi-res to lo-res bake via Blender headless; preserves original UVs through COLLAPSE decimation
+- **Color 3D print export** — exports .3mf with per-face vertex colors, palette quantization, and optional mesh subdivision for color detail
+- **Turntable video export** — records 360° rotation and encodes to mp4 or gif via Python (no ffmpeg install required)
+- **HTML viewer export** — self-contained interactive 3D viewer with PSX effects for sharing
+
+## What Makes This Different
+
+Most PSX-style converters apply a fixed poly count or texture size. lofi-scan treats the conversion as a search problem: it finds the *minimum* settings that still preserve recognizability for each specific object, which varies significantly across geometry types. The result log makes it usable as a repeatable research pipeline, not just a one-off aesthetic filter.
 
 ## Requirements
 
 - Godot 4.x
-- Blender 3.x or later
+- Blender 3.6 or later
 - Python 3.10+
-- ffmpeg
 
 ```bash
 pip install Pillow numpy scikit-image
 ```
 
-## Setup
+## Getting Started
 
 ```bash
-git clone https://github.com/your-username/lofi-scan.git
+git clone https://github.com/rendyrayana/lofi-scan.git
 cd lofi-scan
 pip install Pillow numpy scikit-image
 ```
 
-Install Blender, Godot, and ffmpeg separately. Set their paths in the Godot UI if they are not on your PATH.
+Open `godot_app/project.godot` in Godot 4. Set the Blender path in the app settings if it is not on your PATH.
 
-## Usage
+## Tech Stack
 
-1. Load a scan (mesh + texture) in the Godot app.
-2. Pick a polygon count and texture resolution.
-3. Bake texture and preview the result live with PSX effects.
-4. Export as GLB or render a turntable video.
+| Tool | Role |
+|---|---|
+| Godot 4 | UI, real-time 3D viewer, shader rendering, export orchestration |
+| GLSL (PSX shader) | Vertex snapping, affine UV, dithering, CRT post-processing |
+| Blender (headless) | Mesh decimation, hi-to-lo texture baking |
+| Python + NumPy | Texture processing, 3MF color quantization, video encoding |
 
-## Folder structure
+## Status
 
-```
-/blender_scripts    Blender processing scripts (decimate, bake, export)
-/godot_app          Godot project (UI, shader, orchestration)
-/docs               Project spec and design notes
-/cache              Processed outputs (gitignored)
-/manifests          Run logs (JSON + thumbnails)
-/video_out          Exported videos (gitignored)
-```
+Prototype — built as part of ongoing research into perceptual quality thresholds for stylized 3D assets. Not production-ready. Feedback and issues welcome.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT
+
+## Links
+
+<!-- Live preview: link -->
+<!-- Project write-up: link -->
+<!-- More projects: yourwebsite.com -->
