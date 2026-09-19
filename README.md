@@ -1,33 +1,44 @@
 # lofi-scan
 
-PSX-style 3D scan converter — prototype / research tool.
+> PSX-style 3D scan converter — prototype / research tool.
 
-<!-- banner or screenshot goes here -->
+<!-- ![Banner](docs/banner.png) -->
 
-<!-- Live Preview · Project Page · Rendy Rayana -->
+**[Live Preview](#)** · **[Project Page](#)** · [Rendy Rayana](#)
+
+---
 
 ## Overview
 
 lofi-scan takes hi-res 3D-scanned objects and converts them into PS1-style low-poly, low-res assets without ZBrush or Maya. Instead of fixed presets, it runs a per-object adaptive search to find the minimum polygon count and texture resolution that still keeps the object recognizable. Built as a research tool and interactive viewer, currently in active development.
 
+---
+
 ## Screenshots
 
-<!-- | docs/screenshot-1.png | docs/screenshot-2.png |
+| | |
 |---|---|
-| Caption | Caption | -->
+| ![](docs/screenshot-1.png) | ![](docs/screenshot-2.png) |
+| *PSX shader preview* | *Export panel* |
+
+---
 
 ## Features
 
-- **Adaptive decimation** — finds the minimum poly count and texture resolution per object via binary search, rather than fixed presets
-- **PSX shader preview** — real-time vertex snapping, affine UV mapping, ordered dithering, and CRT effects in the viewport
-- **Texture baking** — hi-res to lo-res bake via Blender headless; preserves original UVs through COLLAPSE decimation
-- **Color 3D print export** — exports .3mf with per-face vertex colors, palette quantization, and optional mesh subdivision for color detail
-- **Turntable video export** — records 360° rotation and encodes to mp4 or gif via Python (no ffmpeg install required)
-- **HTML viewer export** — self-contained interactive 3D viewer with PSX effects for sharing
+- Adaptive decimation — finds the minimum poly count and texture resolution per object, rather than fixed presets
+- Real-time PSX shader — vertex snapping, affine UV mapping, ordered dithering, and CRT effects in the viewport
+- Texture baking — hi-res to lo-res bake via Blender headless; preserves original UVs through COLLAPSE decimation
+- Color 3D print export — .3mf with per-face vertex colors, palette quantization, and optional mesh subdivision
+- Turntable video export — records 360° rotation and encodes to mp4 or gif via Python, no ffmpeg install required
+- HTML viewer export — self-contained interactive 3D viewer with PSX effects for sharing
+
+---
 
 ## What Makes This Different
 
-Most PSX-style converters apply a fixed poly count or texture size. lofi-scan treats the conversion as a search problem: it finds the *minimum* settings that still preserve recognizability for each specific object, which varies significantly across geometry types. The result log makes it usable as a repeatable research pipeline, not just a one-off aesthetic filter.
+Most PSX-style converters apply a fixed poly count or texture size. lofi-scan treats conversion as a search problem: it finds the minimum settings that still preserve recognizability for each specific object, which varies significantly across geometry types. The result log makes it usable as a repeatable research pipeline, not just a one-off aesthetic filter.
+
+---
 
 ## Requirements
 
@@ -39,35 +50,45 @@ Most PSX-style converters apply a fixed poly count or texture size. lofi-scan tr
 pip install Pillow numpy scikit-image
 ```
 
+---
+
 ## Getting Started
 
 ```bash
-git clone https://github.com/rendyrayana/lofi-scan.git
+git clone https://github.com/rendyrayana/lofi-scan
 cd lofi-scan
 pip install Pillow numpy scikit-image
 ```
 
 Open `godot_app/project.godot` in Godot 4. Set the Blender path in the app settings if it is not on your PATH.
 
+---
+
 ## Tech Stack
 
-| Tool | Role |
+| Library / Tool | Role |
 |---|---|
-| Godot 4 | UI, real-time 3D viewer, shader rendering, export orchestration |
+| [Godot 4](https://godotengine.org) | UI, real-time 3D viewer, shader rendering, export orchestration |
 | GLSL (PSX shader) | Vertex snapping, affine UV, dithering, CRT post-processing |
-| Blender (headless) | Mesh decimation, hi-to-lo texture baking |
+| [Blender](https://blender.org) (headless) | Mesh decimation, hi-to-lo texture baking |
 | Python + NumPy | Texture processing, 3MF color quantization, video encoding |
+
+---
 
 ## Status
 
-Prototype — built as part of ongoing research into perceptual quality thresholds for stylized 3D assets. Not production-ready. Feedback and issues welcome.
+`Prototype` — built as part of ongoing research into perceptual quality thresholds for stylized 3D assets. Not production-ready. Feedback and issues welcome.
+
+---
 
 ## License
 
-MIT
+[MIT](LICENSE)
+
+---
 
 ## Links
 
-<!-- Live preview: link -->
-<!-- Project write-up: link -->
-<!-- More projects: yourwebsite.com -->
+- **Live Preview:** [link](#)
+- **Project write-up:** [link](#)
+- **More projects:** [yourwebsite.com](#)
