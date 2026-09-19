@@ -20,6 +20,11 @@ uniform vec3 fill_light : source_color = vec3(0.0);
 uniform bool use_dither = true;
 uniform float dither_gamma = 1.0;
 
+// --- Color Grading (model-only, applied after dither) ---
+uniform float exposure   : hint_range(0.5, 3.0) = 1.0;
+uniform float brightness : hint_range(0.1, 2.0) = 1.0;
+uniform float contrast   : hint_range(0.1, 2.0) = 1.0;
+
 // --- Fog ---
 uniform bool use_fog = false;
 uniform vec3 fog_tint : source_color = vec3(0.42, 0.42, 0.45);
@@ -116,6 +121,11 @@ void fragment() {
         vec3 quantized = clamp(clamped / 8.0, vec3(0.0), vec3(31.0)) / 31.0;
         surface = pow(quantized, vec3(dither_gamma));
     }
+
+    // Color grading — affects only model materials, not the environment
+    surface = clamp(surface * exposure, 0.0, 1.0);
+    surface = clamp((surface - 0.5) * contrast + 0.5, 0.0, 1.0);
+    surface = clamp(surface * brightness, 0.0, 1.0);
 
     ALBEDO = surface;
 }

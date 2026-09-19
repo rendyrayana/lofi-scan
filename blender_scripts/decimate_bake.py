@@ -153,6 +153,7 @@ def main():
 
     input_mesh       = cfg["input_mesh"]
     input_texture    = cfg.get("input_texture")
+    lo_res_mesh      = cfg.get("lo_res_mesh")   # pre-decimated GLB; skip decimation if provided
     target_tri_count = int(cfg["target_tri_count"])
     output_dir       = cfg["output_dir"]
     bake_resolution  = int(cfg.get("bake_resolution", 1024))
@@ -207,19 +208,14 @@ def main():
     hi_res.data.materials.append(hi_emit_mat)
 
     # ------------------------------------------------------------------
-    # 5. Merge vertices by distance on hi-res before duplicating.
-    #    Raw scan meshes are often "triangle soup" — every triangle is a
-    #    disconnected island with no shared vertices. The Decimate modifier
-    #    can't collapse isolated triangles, so without this step it just
-    #    picks N random floating triangles instead of simplifying the shape.
-    #    Merging welds spatially coincident vertices into a proper mesh.
+    # 5. Merge hi-res vertices by distance (needed for clean bake projection).
+    #    Scan meshes are often "triangle soup" with no shared vertices.
     # ------------------------------------------------------------------
     merge_distance = float(cfg.get("merge_distance", 0.0))
     if merge_distance <= 0:
-        # Auto: 0.1% of shortest bounding-box dimension
         dims = hi_res.dimensions
-        merge_distance = min(dims.x, dims.y, dims.z) * 0.001
-    print(f"[decimate_bake] Merging vertices (threshold {merge_distance:.6f})…")
+        merge_distance = max(dims.x, dims.y, dims.z) * 0.001
+    print(f"[decimate_bake] Merging hi-res vertices (threshold {merge_distance:.6f})…")
 
     select_only(hi_res, context)
     bpy.ops.object.mode_set(mode="EDIT")
@@ -227,53 +223,97 @@ def main():
     bpy.ops.mesh.remove_doubles(threshold=merge_distance)
     bpy.ops.object.mode_set(mode="OBJECT")
     merged_tri_count = count_tris(hi_res)
-    print(f"[decimate_bake] After merge: {merged_tri_count} tris, "
-          f"{len(hi_res.data.vertices)} verts")
+    print(f"[decimate_bake] Hi-res after merge: {merged_tri_count} tris")
 
     # ------------------------------------------------------------------
-    # 6. Duplicate hi-res → lo-res (for decimation)
+    # 5b. Optional hole filling — bmesh holes_fill for flat, clean caps.
     # ------------------------------------------------------------------
-    select_only(hi_res, context)
-    bpy.ops.object.duplicate()
-    lo_res = context.active_object
-    lo_res.name = "LoRes"
+    if cfg.get("fill_holes", False):
+        import bmesh as _bmesh
+        print("[decimate_bake] Filling holes…")
+        bm = _bmesh.new()
+        bm.from_mesh(hi_res.data)
+        boundary = [e for e in bm.edges if not e.is_manifold]
+        if boundary:
+            _bmesh.ops.holes_fill(bm, edges=boundary, sides=0)
+            _bmesh.ops.triangulate(bm, faces=[f for f in bm.faces if len(f.verts) > 3])
+        bm.to_mesh(hi_res.data)
+        hi_res.data.update()
+        bm.free()
+        print(f"[decimate_bake] After fill holes: {count_tris(hi_res)} tris")
 
     # ------------------------------------------------------------------
-    # 7. Decimate (ratio against post-merge count, not raw import count)
+    # 6+7. Lo-res mesh: either import pre-decimated GLB (shape already
+    #      approved by the user) or duplicate + COLLAPSE-decimate hi-res.
+    #
+    #  *** NO voxel remesh here. ***
+    #  Voxel remesh creates entirely new topology with no UV coordinates,
+    #  forcing a smart_project re-unwrap that introduces severe stretching
+    #  and misalignment. COLLAPSE decimation on the merged original mesh
+    #  keeps every vertex as a subset of the original, so the existing UV
+    #  coordinates are still valid — no re-unwrap needed for textured meshes.
     # ------------------------------------------------------------------
-    ratio = min(target_tri_count / max(merged_tri_count, 1), 1.0)
-    mod = lo_res.modifiers.new("Decimate", "DECIMATE")
-    mod.decimate_type = "COLLAPSE"
-    mod.ratio = ratio
-    mod.use_collapse_triangulate = True
+    if lo_res_mesh:
+        print(f"[decimate_bake] Importing pre-decimated lo-res: {lo_res_mesh}")
+        lo_res = import_mesh(os.path.abspath(lo_res_mesh))
+        lo_res.name = "LoRes"
+        final_tri_count = count_tris(lo_res)
+        print(f"[decimate_bake] Lo-res tris: {final_tri_count}")
+    else:
+        select_only(hi_res, context)
+        bpy.ops.object.duplicate()
+        lo_res = context.active_object
+        lo_res.name = "LoRes"
 
-    apply_modifier(lo_res, "Decimate", context)
-    final_tri_count = count_tris(lo_res)
-    print(f"[decimate_bake] Decimated: {merged_tri_count} → {final_tri_count} tris "
-          f"(target {target_tri_count})")
+        src_tris = count_tris(lo_res)
+        ratio = min(target_tri_count / max(src_tris, 1), 1.0)
+        mod = lo_res.modifiers.new("Decimate", "DECIMATE")
+        mod.decimate_type = "COLLAPSE"
+        mod.ratio = ratio
+        mod.use_collapse_triangulate = True
+        apply_modifier(lo_res, "Decimate", context)
+        final_tri_count = count_tris(lo_res)
+        print(f"[decimate_bake] Decimated: {src_tris} → {final_tri_count} tris "
+              f"(target {target_tri_count})")
 
-    # ------------------------------------------------------------------
-    # 8. Fresh UV unwrap on lo-res.
-    #    The inherited hi-res UV layout is meaningless after aggressive
-    #    decimation — islands shrink to specks and the bake comes out black.
-    #    Always re-unwrap after decimating.
-    # ------------------------------------------------------------------
-    while lo_res.data.uv_layers:
-        lo_res.data.uv_layers.remove(lo_res.data.uv_layers[0])
-
-    select_only(lo_res, context)
-    bpy.ops.object.mode_set(mode="EDIT")
-    bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.uv.smart_project(angle_limit=66, island_margin=0.02)
-    bpy.ops.object.mode_set(mode="OBJECT")
-    print("[decimate_bake] UV-unwrapped lo-res (smart project)")
+        bpy.ops.object.shade_smooth()
 
     # ------------------------------------------------------------------
-    # 8. Auto cage extrusion — 2% of longest bounding-box dimension.
+    # 8. UV unwrap — only when the mesh has no existing UV layer.
+    #    COLLAPSE on an OBJ/GLB with UVs preserves UV coordinates exactly
+    #    (merged vertices share their UV from the surviving edge endpoint).
+    #    Re-unwrapping a textured mesh discards this alignment and causes
+    #    the stretching / vertical-smear artefacts.
+    #    For PLY / no-MTL OBJ (no UVs), smart_project is still required.
+    # ------------------------------------------------------------------
+    has_uvs = len(lo_res.data.uv_layers) > 0
+    if has_uvs:
+        print(f"[decimate_bake] Keeping original UV layer: "
+              f"'{lo_res.data.uv_layers[0].name}' — skipping re-unwrap")
+    else:
+        select_only(lo_res, context)
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="SELECT")
+        # angle_limit=45 creates more islands with less angular distortion per
+        # island compared to 66°. More islands = smaller stretch per island
+        # when baking organic shapes without a reference UV layout.
+        bpy.ops.uv.smart_project(angle_limit=45, island_margin=0.02)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        print("[decimate_bake] UV-unwrapped lo-res (no original UVs — smart_project 45°)")
+
+    # ------------------------------------------------------------------
+    # 8b. Auto cage extrusion.
+    #    Without voxel remesh the lo-res surface is a subset of hi-res
+    #    vertices, so both surfaces are nearly co-planar. A small cage is
+    #    sufficient — large cages project onto the wrong surface for thin
+    #    or concave geometry, causing smearing.
     # ------------------------------------------------------------------
     if cage_extrusion <= 0:
         dims = lo_res.dimensions
-        cage_extrusion = max(dims.x, dims.y, dims.z) * 0.02
+        max_dim = max(dims.x, dims.y, dims.z)
+        # 1% of longest dimension: enough to bridge merge-distance gaps,
+        # small enough to avoid projecting onto back-faces.
+        cage_extrusion = max(max_dim * 0.01, merge_distance * 3.0)
     print(f"[decimate_bake] Cage extrusion: {cage_extrusion:.4f}")
 
     # ------------------------------------------------------------------
@@ -294,12 +334,34 @@ def main():
     # ------------------------------------------------------------------
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
-    scene.cycles.device = "CPU"
     scene.cycles.samples = cycles_samples
+
+    # Auto-detect GPU (Metal on Mac, CUDA on Windows/Linux)
+    _device = "CPU"
+    try:
+        prefs = bpy.context.preferences.addons["cycles"].preferences
+        for api in ("METAL", "CUDA", "OPENCL"):
+            try:
+                prefs.compute_device_type = api
+                prefs.get_devices()
+                gpu_devs = [d for d in prefs.devices if d.type != "CPU"]
+                if gpu_devs:
+                    for d in prefs.devices:
+                        d.use = True
+                    _device = "GPU"
+                    print(f"[decimate_bake] Using {api} GPU")
+                    break
+            except Exception:
+                continue
+    except Exception:
+        pass
+    scene.cycles.device = _device
+    if _device == "CPU":
+        print("[decimate_bake] Using CPU (no GPU found)")
     scene.render.bake.use_selected_to_active = True
     scene.render.bake.cage_extrusion = cage_extrusion
     scene.render.bake.use_cage = False
-    scene.render.bake.margin = 16
+    scene.render.bake.margin = 32
 
     # ------------------------------------------------------------------
     # 11. Bake EMIT: hi_res (selected/source) → lo_res (active/target)

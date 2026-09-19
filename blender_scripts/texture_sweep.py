@@ -68,6 +68,15 @@ def write_config(path, data):
         json.dump(data, f, indent=2)
 
 
+def write_progress(path, pct, msg):
+    if path:
+        try:
+            with open(path, "w") as f:
+                json.dump({"pct": pct, "msg": msg}, f)
+        except Exception:
+            pass
+
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python3 texture_sweep.py config.json"); sys.exit(1)
@@ -77,6 +86,7 @@ def main():
 
     input_mesh       = cfg["input_mesh"]
     input_texture    = cfg.get("input_texture")
+    lo_res_mesh      = cfg.get("lo_res_mesh")   # pre-decimated GLB from poly preview
     fixed_tri_count  = int(cfg["fixed_tri_count"])
     output_dir       = cfg["output_dir"]
     resolutions      = cfg.get("resolutions", [16, 32, 64, 128, 256])
@@ -84,6 +94,10 @@ def main():
     merge_distance   = float(cfg.get("merge_distance", 0.0))
     blender_bin      = cfg.get("blender_bin", "blender")
     cam_dist         = float(cfg.get("camera_distance", 2.5))
+    progress_file    = cfg.get("progress_file", None)
+
+    if lo_res_mesh:
+        print(f"[tex_sweep] Using pre-decimated lo-res mesh: {lo_res_mesh}")
 
     if "tier" in cfg:
         tier         = int(cfg["tier"])
@@ -101,6 +115,7 @@ def main():
     # ------------------------------------------------------------------
     # 1. Textured hi-res reference (rendered with original texture)
     # ------------------------------------------------------------------
+    write_progress(progress_file, 5, "Hi-res reference")
     print("\n[tex_sweep] Rendering textured hi-res reference…")
     hi_dir      = os.path.join(scratch, "hi_res_textured")
     hi_cfg_path = os.path.join(scratch, "cfg_hi_tex.json")
@@ -125,12 +140,14 @@ def main():
     #    Comparing lo-res-at-res vs lo-res-at-max_res isolates texture quality.
     # ------------------------------------------------------------------
     max_res = max(resolutions)
+    write_progress(progress_file, 18, f"Baking ceiling {max_res}px")
     print(f"\n[tex_sweep] Baking ceiling at max resolution ({max_res}px)…")
     ceil_dir = os.path.join(scratch, f"bake_{max_res}px")
     ceil_cfg = os.path.join(scratch, f"cfg_bake_{max_res}.json")
     write_config(ceil_cfg, {
         "input_mesh":        input_mesh,
         "input_texture":     input_texture,
+        "lo_res_mesh":       lo_res_mesh,
         "target_tri_count":  fixed_tri_count,
         "output_dir":        ceil_dir,
         "bake_resolution":   max_res,
@@ -163,7 +180,10 @@ def main():
     best_res    = resolutions[-1]   # conservative fallback = largest
     best_score  = 0.0
 
-    for res in resolutions:
+    total_res = len(resolutions)
+    for res_idx, res in enumerate(resolutions):
+        pct = 30 + int((res_idx / total_res) * 55)
+        write_progress(progress_file, pct, f"Baking {res}px ({res_idx+1}/{total_res})")
         print(f"\n[tex_sweep] Baking at {res}px…")
 
         # Max-res already baked above — reuse it
@@ -186,6 +206,7 @@ def main():
         write_config(bake_cfg, {
             "input_mesh":        input_mesh,
             "input_texture":     input_texture,
+            "lo_res_mesh":       lo_res_mesh,
             "target_tri_count":  fixed_tri_count,
             "output_dir":        bake_dir,
             "bake_resolution":   res,
@@ -227,6 +248,7 @@ def main():
     # ------------------------------------------------------------------
     # 3. Final bake at confirmed resolution
     # ------------------------------------------------------------------
+    write_progress(progress_file, 88, f"Final bake {best_res}px")
     print(f"\n[tex_sweep] Minimum passing resolution: {best_res}px (SSIM {best_score:.4f})")
     print("[tex_sweep] Running final bake at confirmed resolution…")
     final_dir     = os.path.join(output_dir, f"final_{fixed_tri_count}tris_{best_res}px")
@@ -234,6 +256,7 @@ def main():
     write_config(final_cfg, {
         "input_mesh":        input_mesh,
         "input_texture":     input_texture,
+        "lo_res_mesh":       lo_res_mesh,
         "target_tri_count":  fixed_tri_count,
         "output_dir":        final_dir,
         "bake_resolution":   best_res,
@@ -262,6 +285,7 @@ def main():
     log_path = os.path.join(output_dir, "texture_sweep_log.json")
     with open(log_path, "w") as f:
         json.dump(log, f, indent=2)
+    write_progress(progress_file, 100, "Bake complete")
     print(f"\n[tex_sweep] Log: {log_path}")
     print(f"[tex_sweep] Final assets: {final_dir}")
     print("[tex_sweep] Done.")

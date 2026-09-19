@@ -5,16 +5,19 @@
 [sub_resource type="ViewportTexture" id="ViewportTexture_main"]
 viewport_path = NodePath("SubViewport")
 
-[node name="Main" type="Node3D" unique_id=1088546809]
+[sub_resource type="ButtonGroup" id="ButtonGroup_poly"]
+[sub_resource type="ButtonGroup" id="ButtonGroup_tex"]
+
+[node name="Main" type="Node3D"]
 script = ExtResource("1")
 
-[node name="SubViewport" type="SubViewport" parent="." unique_id=426402192]
+[node name="SubViewport" type="SubViewport" parent="."]
 size = Vector2i(320, 240)
 render_target_update_mode = 4
 
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1710370585]
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
 
-[node name="Magnification" type="TextureRect" parent="CanvasLayer" unique_id=1093068737]
+[node name="Magnification" type="TextureRect" parent="CanvasLayer"]
 texture_filter = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -24,286 +27,594 @@ grow_vertical = 2
 texture = SubResource("ViewportTexture_main")
 stretch_mode = 5
 
-[node name="CRT" type="ColorRect" parent="CanvasLayer" unique_id=226864528]
+[node name="CRT" type="ColorRect" parent="CanvasLayer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="SidePanel" type="Panel" parent="CanvasLayer" unique_id=1027039865]
+[node name="CounterLabel" type="Label" parent="CanvasLayer"]
+layout_mode = 1
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = -38.0
+offset_right = 500.0
+offset_bottom = -14.0
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(1.0, 1.0, 1.0, 0.85)
+theme_override_colors/font_shadow_color = Color(0.0, 0.0, 0.0, 0.9)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+text = ""
+visible = false
+
+[node name="SidePanel" type="Panel" parent="CanvasLayer"]
 anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -280.0
+offset_left = -380.0
 
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/SidePanel" unique_id=2064071764]
-layout_mode = 0
+[node name="Scroll" type="ScrollContainer" parent="CanvasLayer/SidePanel"]
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/SidePanel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_bottom = 24
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="Title" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=1825931480]
+[node name="Title" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "lofi-scan"
 
-[node name="HSep0" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=605933326]
+[node name="Spacer0" type="Control" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 4)
 
-[node name="UploadBtn" type="Button" parent="CanvasLayer/SidePanel/VBox" unique_id=1660482906]
+[node name="GeoHeader" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
-text = "Upload Mesh…"
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+text = "1  GEOMETRY"
 
-[node name="BatchBtn" type="Button" parent="CanvasLayer/SidePanel/VBox" unique_id=493218751]
+[node name="LoadBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
-text = "Batch Folder…"
+custom_minimum_size = Vector2(0, 34)
+text = "Load Model…"
 
-[node name="InputLabel" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=1942591766]
-custom_minimum_size = Vector2(4, 0)
+[node name="InputLabel" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.55, 0.55, 0.55, 1)
 text = "No file selected"
 autowrap_mode = 2
 
-[node name="HSep1" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=349816900]
+[node name="LoadTexRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 4
 
-[node name="TierRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox" unique_id=1942696377]
-layout_mode = 2
-
-[node name="TierLabel" type="Label" parent="CanvasLayer/SidePanel/VBox/TierRow" unique_id=727280592]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Quality "
-
-[node name="TierOption" type="OptionButton" parent="CanvasLayer/SidePanel/VBox/TierRow" unique_id=182484052]
+[node name="LoadTexBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/LoadTexRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-selected = 1
-item_count = 4
-popup/item_0/text = "Tier 1  (draft)"
-popup/item_0/id = 0
-popup/item_1/text = "Tier 2  (fast)"
-popup/item_1/id = 1
-popup/item_2/text = "Tier 3  (quality)"
-popup/item_2/id = 2
-popup/item_3/text = "Tier 4  (max)"
-popup/item_3/id = 3
-
-[node name="ProcessBtn" type="Button" parent="CanvasLayer/SidePanel/VBox" unique_id=956320864]
-layout_mode = 2
 disabled = true
-text = "Process"
+text = "Load Texture…"
 
-[node name="HSep2" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=2031174900]
+[node name="TexLabel" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/LoadTexRow"]
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.55, 0.55, 0.55, 1)
+text = ""
+clip_text = true
 
-[node name="StatusTitle" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=2135578141]
+[node name="DecimateBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
-text = "Status"
+custom_minimum_size = Vector2(0, 34)
+disabled = true
+text = "Decimate"
 
-[node name="StatusLabel" type="RichTextLabel" parent="CanvasLayer/SidePanel/VBox" unique_id=1765218049]
-custom_minimum_size = Vector2(0, 60)
+[node name="PolyRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
-size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="PolyBtn0" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PolyRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+toggle_mode = true
+button_group = SubResource("ButtonGroup_poly")
+disabled = true
+text = "—"
+
+[node name="PolyBtn1" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PolyRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+toggle_mode = true
+button_group = SubResource("ButtonGroup_poly")
+disabled = true
+text = "—"
+
+[node name="PolyBtn2" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PolyRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+toggle_mode = true
+button_group = SubResource("ButtonGroup_poly")
+disabled = true
+text = "—"
+
+[node name="PolyBtn3" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PolyRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+toggle_mode = true
+button_group = SubResource("ButtonGroup_poly")
+disabled = true
+text = "—"
+
+[node name="PreviewRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TexPreviewBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PreviewRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Texture"
+
+[node name="GeoWireBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PreviewRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Wireframe"
+
+[node name="CounterToggleBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PreviewRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Stats"
+
+[node name="PolyRangeRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PolyRangeDownBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PolyRangeRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(32, 28)
+disabled = true
+text = "‹"
+
+[node name="PolyRangeLbl" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PolyRangeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.55, 0.55, 0.55, 1)
+text = "max —"
+
+[node name="PolyRangeUpBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PolyRangeRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(32, 28)
+disabled = true
+text = "›"
+
+[node name="GeoStatus" type="RichTextLabel" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
 bbcode_enabled = true
-text = "[color=gray]Ready.[/color]"
+scroll_active = false
+fit_content = true
+theme_override_font_sizes/normal_font_size = 11
+text = "[color=gray]Load a mesh to begin.[/color]"
 
-[node name="ResultLabel" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=263937983]
-custom_minimum_size = Vector2(4, 0)
+[node name="Spacer1" type="Control" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 6)
+
+[node name="TexHeader" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+text = "2  TEXTURE"
+
+[node name="BakeBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 34)
+disabled = true
+text = "Bake Texture"
+
+[node name="TexRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TexBtn0" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/TexRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+toggle_mode = true
+button_group = SubResource("ButtonGroup_tex")
+disabled = true
+text = "32px"
+
+[node name="TexBtn1" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/TexRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+toggle_mode = true
+button_group = SubResource("ButtonGroup_tex")
+disabled = true
+text = "64px"
+
+[node name="TexBtn2" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/TexRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+toggle_mode = true
+button_group = SubResource("ButtonGroup_tex")
+disabled = true
+text = "128px"
+
+[node name="TexBtn3" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/TexRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 44)
+toggle_mode = true
+button_group = SubResource("ButtonGroup_tex")
+disabled = true
+text = "256px"
+
+[node name="TexRangeRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TexRangeDownBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/TexRangeRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(32, 28)
+disabled = true
+text = "‹"
+
+[node name="TexRangeLbl" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/TexRangeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.55, 0.55, 0.55, 1)
+text = "32–256px"
+
+[node name="TexRangeUpBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/TexRangeRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(32, 28)
+disabled = true
+text = "›"
+
+[node name="TexStatus" type="RichTextLabel" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+bbcode_enabled = true
+scroll_active = false
+fit_content = true
+theme_override_font_sizes/normal_font_size = 11
+text = ""
+
+[node name="ResultLabel" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.55, 0.55, 0.55, 1)
 text = "— tris  ·  — tex"
 
-[node name="ExportBtn" type="Button" parent="CanvasLayer/SidePanel/VBox" unique_id=946512519]
+[node name="ExportBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 34)
 disabled = true
 text = "Export GLB…"
 
-[node name="HSep3" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=1840127642]
+[node name="ExportBakedBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 30)
+disabled = true
+text = "Export Baked GLB…"
 
-[node name="PSXTitle" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=163297643]
+[node name="ExportHtmlBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
-text = "PSX Settings"
+custom_minimum_size = Vector2(0, 30)
+disabled = true
+text = "Export HTML…"
 
-[node name="PixelateRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+[node name="Export3MFBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 30)
+disabled = true
+text = "Export 3MF (color print)…"
 
-[node name="PixelateBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox/PixelateRow"]
+[node name="Spacer2" type="Control" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 6)
+
+[node name="RenderHeader" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
+text = "3  RENDER"
+
+[node name="PSXLabel" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "PSX"
+
+[node name="PixelateRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PixelateBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PixelateRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(92, 0)
 button_pressed = true
 text = "Pixelate"
 
-[node name="PixelateSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/PixelateRow"]
+[node name="PixelateSlider" type="HSlider" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PixelateRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.05
+size_flags_vertical = 4
+min_value = 0.02
 max_value = 0.5
-value = 0.25
-step = 0.0
+step = 0.01
+value = 0.15
 
-[node name="SnapBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=1326049333]
+[node name="PixelateVal" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PixelateRow"]
 layout_mode = 2
+custom_minimum_size = Vector2(36, 0)
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 2
+text = "0.25"
+
+[node name="PSXToggles1" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SnapBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PSXToggles1"]
+layout_mode = 2
+size_flags_horizontal = 3
 button_pressed = true
-text = "Snap Vertices"
+text = "Snap UV"
 
-[node name="AffineBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=51119238]
+[node name="AffineBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PSXToggles1"]
 layout_mode = 2
+size_flags_horizontal = 3
 button_pressed = true
-text = "Affine UV"
+text = "Affine"
 
-[node name="DitherBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=910952195]
+[node name="PSXToggles2" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="DitherBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PSXToggles2"]
+layout_mode = 2
+size_flags_horizontal = 3
 button_pressed = true
 text = "Dither"
 
-[node name="WireframeBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox"]
+[node name="WireframeBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/PSXToggles2"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Wireframe"
 
-[node name="HSep5" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=1071784427]
+[node name="CRTLabel" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "CRT"
 
-[node name="CRTTitle" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=1513251541]
+[node name="GrainRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
-text = "CRT Effects"
+theme_override_constants/separation = 6
 
-[node name="GrainRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+[node name="GrainBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/GrainRow"]
 layout_mode = 2
-
-[node name="GrainBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox/GrainRow"]
-layout_mode = 2
+custom_minimum_size = Vector2(92, 0)
 text = "Grain"
 
-[node name="GrainSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/GrainRow"]
+[node name="GrainSlider" type="HSlider" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/GrainRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
+size_flags_vertical = 4
 max_value = 1.0
+step = 0.01
 value = 1.0
 editable = false
 
-[node name="ChromaRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+[node name="GrainVal" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/GrainRow"]
 layout_mode = 2
+custom_minimum_size = Vector2(36, 0)
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 2
+modulate = Color(1, 1, 1, 0.35)
+text = "1.00"
 
-[node name="ChromaBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox/ChromaRow"]
+[node name="ChromaRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ChromaBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/ChromaRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(92, 0)
 text = "Chroma"
 
-[node name="ChromaSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/ChromaRow"]
+[node name="ChromaSlider" type="HSlider" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/ChromaRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
+size_flags_vertical = 4
 max_value = 1.0
+step = 0.01
 value = 1.0
 editable = false
 
-[node name="ScanlinesRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+[node name="ChromaVal" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/ChromaRow"]
 layout_mode = 2
+custom_minimum_size = Vector2(36, 0)
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 2
+modulate = Color(1, 1, 1, 0.35)
+text = "1.00"
 
-[node name="ScanlinesBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox/ScanlinesRow"]
+[node name="ScanlinesRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ScanlinesBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/ScanlinesRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(92, 0)
 text = "Scanlines"
 
-[node name="ScanlinesSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/ScanlinesRow"]
+[node name="ScanlinesSlider" type="HSlider" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/ScanlinesRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
+size_flags_vertical = 4
 max_value = 1.0
+step = 0.01
 value = 1.0
 editable = false
 
-[node name="VignetteRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+[node name="ScanlinesVal" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/ScanlinesRow"]
 layout_mode = 2
+custom_minimum_size = Vector2(36, 0)
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 2
+modulate = Color(1, 1, 1, 0.35)
+text = "1.00"
 
-[node name="VignetteBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox/VignetteRow"]
+[node name="VignetteRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="VignetteBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/VignetteRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(92, 0)
 text = "Vignette"
 
-[node name="VignetteSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/VignetteRow"]
+[node name="VignetteSlider" type="HSlider" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/VignetteRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
+size_flags_vertical = 4
 max_value = 1.0
+step = 0.01
 value = 1.0
 editable = false
 
-[node name="WarbleRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+[node name="VignetteVal" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/VignetteRow"]
 layout_mode = 2
+custom_minimum_size = Vector2(36, 0)
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 2
+modulate = Color(1, 1, 1, 0.35)
+text = "1.00"
 
-[node name="WarbleBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox/WarbleRow"]
+[node name="WarbleRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="WarbleBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/WarbleRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(92, 0)
 text = "Warble"
 
-[node name="WarbleSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/WarbleRow"]
+[node name="WarbleSlider" type="HSlider" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/WarbleRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
+size_flags_vertical = 4
 max_value = 1.0
+step = 0.01
 value = 1.0
 editable = false
 
-[node name="HSep4" type="HSeparator" parent="CanvasLayer/SidePanel/VBox" unique_id=1078277388]
+[node name="WarbleVal" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/WarbleRow"]
 layout_mode = 2
+custom_minimum_size = Vector2(36, 0)
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 2
+modulate = Color(1, 1, 1, 0.35)
+text = "1.00"
 
-[node name="SceneTitle" type="Label" parent="CanvasLayer/SidePanel/VBox" unique_id=1437443408]
+[node name="SceneLabel" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
-text = "Scene"
+theme_override_font_sizes/font_size = 11
+text = "SCENE"
 
-[node name="BGRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox" unique_id=685836713]
+[node name="BGRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="BGLabel" type="Label" parent="CanvasLayer/SidePanel/VBox/BGRow" unique_id=920556222]
+[node name="BGLabel" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/BGRow"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Background "
+size_flags_vertical = 4
+text = "Background"
 
-[node name="BGColor" type="ColorPickerButton" parent="CanvasLayer/SidePanel/VBox/BGRow" unique_id=249659474]
+[node name="BGColor" type="ColorPickerButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/BGRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 color = Color(0.118, 0.118, 0.118, 1)
 
-[node name="TurntableBtn" type="CheckButton" parent="CanvasLayer/SidePanel/VBox" unique_id=1034902378]
+[node name="TurntableRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TurntableBtn" type="CheckButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/TurntableRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(92, 0)
 text = "Turntable"
 
-[node name="SpeedRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox" unique_id=633051784]
-layout_mode = 2
-
-[node name="SpeedLabel" type="Label" parent="CanvasLayer/SidePanel/VBox/SpeedRow" unique_id=877685874]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Speed "
-
-[node name="SpeedSlider" type="HSlider" parent="CanvasLayer/SidePanel/VBox/SpeedRow" unique_id=1316220142]
+[node name="SpeedSlider" type="HSlider" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/TurntableRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 4
 min_value = 5.0
 max_value = 120.0
+step = 1.0
 value = 30.0
 
-[node name="RecordRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/VBox"]
+[node name="SpeedVal" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/TurntableRow"]
 layout_mode = 2
+custom_minimum_size = Vector2(36, 0)
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 2
+text = "30"
 
-[node name="SnapshotBtn" type="Button" parent="CanvasLayer/SidePanel/VBox/RecordRow"]
+[node name="CaptureLabel" type="Label" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "CAPTURE"
+
+[node name="CaptureRow" type="HBoxContainer" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SnapshotBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/CaptureRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(34, 34)
 text = "📷"
 tooltip_text = "Save PNG snapshot"
 
-[node name="RecordBtn" type="Button" parent="CanvasLayer/SidePanel/VBox/RecordRow"]
+[node name="RecordBtn" type="Button" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/CaptureRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 34)
 text = "Record 360°"
 
-[node name="FmtOption" type="OptionButton" parent="CanvasLayer/SidePanel/VBox/RecordRow"]
+[node name="FmtOption" type="OptionButton" parent="CanvasLayer/SidePanel/Scroll/Margin/VBox/CaptureRow"]
 layout_mode = 2
+custom_minimum_size = Vector2(60, 34)
 selected = 0
 item_count = 2
 popup/item_0/text = "mp4"
@@ -311,21 +622,18 @@ popup/item_0/id = 0
 popup/item_1/text = "gif"
 popup/item_1/id = 1
 
-[node name="Spacer" type="Control" parent="CanvasLayer/SidePanel/VBox" unique_id=1793002550]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="FileDialog" type="FileDialog" parent="CanvasLayer" unique_id=1012464718]
-title = "Open a File"
+[node name="FileDialog" type="FileDialog" parent="CanvasLayer"]
+title = "Open Mesh"
 size = Vector2i(900, 600)
 file_mode = 0
 access = 2
 filters = PackedStringArray("*.obj,*.glb,*.gltf,*.ply ; Mesh Files")
 
-[node name="ExportDialog" type="FileDialog" parent="CanvasLayer" unique_id=1535242925]
+[node name="ExportDialog" type="FileDialog" parent="CanvasLayer"]
 title = "Export GLB"
 size = Vector2i(900, 600)
 access = 2
+file_mode = 4
 filters = PackedStringArray("*.glb ; GLB Files")
 
 [node name="VideoDialog" type="FileDialog" parent="CanvasLayer"]
@@ -341,9 +649,3 @@ size = Vector2i(900, 600)
 access = 2
 file_mode = 4
 filters = PackedStringArray("*.png ; PNG Image")
-
-[node name="BatchDialog" type="FileDialog" parent="CanvasLayer" unique_id=529857428]
-title = "Open a Directory"
-size = Vector2i(900, 600)
-file_mode = 2
-access = 2

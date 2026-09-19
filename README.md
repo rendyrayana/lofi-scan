@@ -6,7 +6,7 @@ Automated pipeline converting 3D scans into recognizability-calibrated PSX-style
 
 ## What it does
 
-lofi-scan takes a hi-res 3D-scanned object (mesh + texture, from Revopoint or similar) and converts it into a PS1/PSX-style low-poly, low-res asset — automatically, without ZBrush or Maya. Rather than using fixed tri-count presets, the pipeline runs a per-object adaptive search to find the minimum polygon count and texture resolution that still preserves a target recognizability score. Every run logs its parameters and results for later analysis, making this usable as a research pipeline as well as a production tool.
+lofi-scan takes a hi-res 3D-scanned object (mesh + texture, from Revopoint or similar) and converts it into a PS1/PSX-style low-poly, low-res asset, automatically, without ZBrush or Maya. Rather than using fixed tri-count presets, the pipeline runs a per-object adaptive search to find the minimum polygon count and texture resolution that still preserves a target recognizability score. Every run logs its parameters and results for later analysis, making this usable as a research pipeline as well as a production tool.
 
 ## Architecture
 
@@ -60,14 +60,14 @@ _Full usage instructions will be added as each milestone from the build order is
 ## Folder structure
 
 ```
-/blender_scripts    — headless Blender scripts (decimate, bake)
-/python_texture     — texture downsample/upsample utilities
-/godot_app          — Godot project (UI, shader viewer, orchestration)
-  /shaders          — psx_shader.gdshader lives here
-/cache              — per-object, per-tier processed outputs (gitignored)
-/manifests          — logged run results (JSON/CSV + thumbnails)
-/video_out          — exported turntable videos (gitignored)
-/docs               — project spec and repo guide
+/blender_scripts    headless Blender scripts (decimate, bake)
+/python_texture     texture downsample/upsample utilities
+/godot_app          Godot project (UI, shader viewer, orchestration)
+  /shaders          psx_shader.gdshader lives here
+/cache              per-object, per-tier processed outputs (gitignored)
+/manifests          logged run results (JSON/CSV + thumbnails)
+/video_out          exported turntable videos (gitignored)
+/docs               project spec and repo guide
 ```
 
 ## License

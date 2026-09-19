@@ -83,6 +83,15 @@ def write_config(path, data):
         json.dump(data, f, indent=2)
 
 
+def write_progress(path, pct, msg):
+    if path:
+        try:
+            with open(path, "w") as f:
+                json.dump({"pct": pct, "msg": msg}, f)
+        except Exception:
+            pass
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -104,8 +113,10 @@ def main():
     render_res       = int(cfg.get("render_resolution", 256))
     bake_res         = int(cfg.get("bake_resolution", 1024))
     merge_distance   = float(cfg.get("merge_distance", 0.0))
+    fill_holes       = bool(cfg.get("fill_holes", False))
     blender_bin      = cfg.get("blender_bin", "blender")
     cam_dist         = float(cfg.get("camera_distance", 2.5))
+    progress_file    = cfg.get("progress_file", None)
 
     if "tier" in cfg:
         tier = int(cfg["tier"])
@@ -123,6 +134,7 @@ def main():
     # ------------------------------------------------------------------
     # 1. Render hi-res reference (once)
     # ------------------------------------------------------------------
+    write_progress(progress_file, 3, "Rendering reference")
     print("\n[search] Rendering hi-res reference…")
     hi_dir = os.path.join(scratch, "hi_res")
     hi_cfg_path = os.path.join(scratch, "cfg_hi.json")
@@ -131,6 +143,7 @@ def main():
         "output_dir":       hi_dir,
         "target_tri_count": 0,          # no decimation
         "merge_distance":   merge_distance,
+        "fill_holes":       fill_holes,
         "render_resolution": render_res,
         "camera_distance":  cam_dist,
     })
@@ -159,6 +172,8 @@ def main():
         if lo > hi:
             break
         mid = (lo + hi) // 2
+        pct = 10 + int((i / max_iter) * 65)
+        write_progress(progress_file, pct, f"Search iter {i+1}/{max_iter}")
         print(f"\n[search] Iter {i+1}/{max_iter}  candidate={mid} tris  [{lo}–{hi}]")
 
         lo_dir      = os.path.join(scratch, f"iter_{i:02d}_{mid}")
@@ -168,6 +183,7 @@ def main():
             "output_dir":        lo_dir,
             "target_tri_count":  mid,
             "merge_distance":    merge_distance,
+            "fill_holes":        fill_holes,
             "render_resolution": render_res,
             "camera_distance":   cam_dist,
         })
@@ -198,6 +214,7 @@ def main():
     # ------------------------------------------------------------------
     # 3. Final decimate + bake at the confirmed tri count
     # ------------------------------------------------------------------
+    write_progress(progress_file, 78, "Final bake")
     print("\n[search] Running final decimate + bake…")
     final_dir     = os.path.join(output_dir, f"final_{best_tris}tris")
     final_cfg_path = os.path.join(scratch, "cfg_final.json")
@@ -208,6 +225,7 @@ def main():
         "output_dir":        final_dir,
         "bake_resolution":   bake_res,
         "merge_distance":    merge_distance,
+        "fill_holes":        fill_holes,
         "cage_extrusion":    0,
         "cycles_samples":    32,
     })
@@ -231,6 +249,7 @@ def main():
     log_path = os.path.join(output_dir, "search_log.json")
     with open(log_path, "w") as f:
         json.dump(log, f, indent=2)
+    write_progress(progress_file, 100, "Analysis complete")
     print(f"\n[search] Log: {log_path}")
     print(f"[search] Final assets: {final_dir}")
     print("[search] Done.")
