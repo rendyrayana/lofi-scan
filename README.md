@@ -1,6 +1,6 @@
 # lofi-scan
 
-> PSX-style 3D scan converter — prototype / research tool.
+> PSX-style 3D scan converter. Prototype / research tool.
 
 <!-- ![Banner](docs/banner.png) -->
 
@@ -25,12 +25,12 @@ lofi-scan takes hi-res 3D-scanned objects and converts them into PS1-style low-p
 
 ## Features
 
-- Adaptive decimation — finds the minimum poly count and texture resolution per object, rather than fixed presets
-- Real-time PSX shader — vertex snapping, affine UV mapping, ordered dithering, and CRT effects in the viewport
-- Texture baking — hi-res to lo-res bake via Blender headless; preserves original UVs through COLLAPSE decimation
-- Color 3D print export — .3mf with per-face vertex colors, palette quantization, and optional mesh subdivision
-- Turntable video export — records 360° rotation and encodes to mp4 or gif via Python, no ffmpeg install required
-- HTML viewer export — self-contained interactive 3D viewer with PSX effects for sharing
+- Adaptive decimation: finds the minimum poly count and texture resolution per object, rather than fixed presets
+- Real-time PSX shader: vertex snapping, affine UV mapping, ordered dithering, and CRT effects in the viewport
+- Texture baking: hi-res to lo-res bake via Blender headless; preserves original UVs through COLLAPSE decimation
+- Color 3D print export: .3mf with per-face vertex colors, palette quantization, and optional mesh subdivision
+- Turntable video export: records 360° rotation and encodes to mp4 or gif via Python, no ffmpeg install required
+- HTML viewer export: self-contained interactive 3D viewer with PSX effects for sharing
 
 ---
 
