@@ -1,4 +1,4 @@
-# GitHub Repo Setup Guide (for Claude Code)
+# GitHub Repo Setup Guide
 
 Companion to `psx-converter-spec.md`. This covers repo hygiene specifically —
 what to commit, what to exclude, and how to prepare `lofi-scan` for an
