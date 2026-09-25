@@ -30,3 +30,8 @@ venv/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Claude
+.claude/
+claude-code-guide.md
+CLAUDE.md
