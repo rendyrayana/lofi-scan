@@ -4,13 +4,13 @@
 
 https://github.com/user-attachments/assets/ac5bf576-01f8-4844-8209-5791f0b12224
 
-**[Live Preview](#)** · **[Project Page](#)** · [Rendy Rayana](#)
+**[Rendy Rayana](https://rendyrayana.my.id)**
 
 ---
 
 ## Overview
 
-lofi-scan takes hi-res 3D-scanned objects and converts them into PS1-style low-poly, low-res assets without ZBrush or Maya. Instead of fixed presets, it runs a per-object adaptive search to find the minimum polygon count and texture resolution that still keeps the object recognizable. Built as a research tool and interactive viewer, currently in active development.
+lofi-scan takes hi-res 3D-scanned objects and converts them into PS1-style low-poly, low-res assets. Instead of fixed presets, it runs a per-object adaptive search to find the minimum polygon count and texture resolution that still keeps the object recognizable. Built as a research tool and interactive viewer, currently in active development.
 
 ---
 
@@ -89,6 +89,4 @@ Open `godot_app/project.godot` in Godot 4. Set the Blender path in the app setti
 
 ## Links
 
-- **Live Preview:** [link](#)
-- **Project write-up:** [link](#)
-- **More projects:** [yourwebsite.com](#)
+- **More projects:** [rendyrayana.my.id](https://rendyrayana.my.id)
