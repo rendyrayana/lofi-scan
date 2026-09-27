@@ -1,9 +1,0 @@
-{
-  "input_mesh":       "obj/kirby.obj",
-  "input_texture":    "obj/kirby.jpg",
-  "target_tri_count": 500,
-  "output_dir":       "cache/kirby_500/",
-  "bake_resolution":  1024,
-  "cage_extrusion":   0,
-  "cycles_samples":   32
-}
