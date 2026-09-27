@@ -19,7 +19,7 @@ lofi-scan takes hi-res 3D-scanned objects and converts them into PS1-style low-p
 | | |
 |---|---|
 | ![](docs/screenshot-1.jpg) | ![](docs/screenshot-2.jpg) |
-| *PSX shader with dithering and CRT effects* | *High-detail model — Barong* |
+| *PSX shader with dithering and CRT effects* | *High-detail model: Barong* |
 
 ---
 
@@ -77,7 +77,7 @@ Open `godot_app/project.godot` in Godot 4. Set the Blender path in the app setti
 
 ## Status
 
-`Prototype` — built as part of ongoing research into perceptual quality thresholds for stylized 3D assets. Not production-ready. Feedback and issues welcome.
+`Prototype` - built as part of ongoing research into perceptual quality thresholds for stylized 3D assets. Not production-ready. Feedback and issues welcome.
 
 ---
 
