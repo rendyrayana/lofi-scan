@@ -18,8 +18,8 @@ lofi-scan takes hi-res 3D-scanned objects and converts them into PS1-style low-p
 
 | | |
 |---|---|
-| ![](docs/screenshot-1.png) | ![](docs/screenshot-2.png) |
-| *PSX shader preview* | *Export panel* |
+| ![](docs/screenshot-1.jpg) | ![](docs/screenshot-2.jpg) |
+| *PSX shader with dithering and CRT effects* | *High-detail model — Barong* |
 
 ---
 
