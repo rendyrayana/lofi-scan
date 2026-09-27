@@ -4,7 +4,7 @@
 
 https://github.com/user-attachments/assets/ac5bf576-01f8-4844-8209-5791f0b12224
 
-**[Rendy Rayana](https://rendyrayana.my.id)**
+**[Project Page](https://rendyrayana.my.id/lofi-scan)** · **[Rendy Rayana](https://rendyrayana.my.id)**
 
 ---
 
@@ -89,4 +89,5 @@ Open `godot_app/project.godot` in Godot 4. Set the Blender path in the app setti
 
 ## Links
 
+- **Project page:** [rendyrayana.my.id/lofi-scan](https://rendyrayana.my.id/lofi-scan)
 - **More projects:** [rendyrayana.my.id](https://rendyrayana.my.id)
