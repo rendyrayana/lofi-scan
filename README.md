@@ -2,7 +2,7 @@
 
 > PSX-style 3D scan converter. Prototype / research tool.
 
-<!-- ![Banner](docs/banner.png) -->
+<video src="docs/lofiscan-banner.mp4" autoplay loop muted playsinline width="100%"></video>
 
 **[Live Preview](#)** · **[Project Page](#)** · [Rendy Rayana](#)
 
